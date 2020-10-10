@@ -40,6 +40,9 @@ def read_file():
     return ""
 
 
+#GPIO.setwarnings(True)
+#GPIO.setmode(GPIO.BCM)
+
 print("Starting main loop")
 while True:
     # print("Running main loop")

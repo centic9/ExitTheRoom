@@ -1,5 +1,5 @@
-# import RPi.GPIO as GPIO
-# import TM1638
+#import RPi.GPIO as GPIO
+#import TM1638
 from Output import Output
 
 
@@ -10,6 +10,9 @@ class TextOutput(Output):
         self.value = value
 
     def clear_internal(self):
+        pass
+
+    def set_value_internal(self, value):
         pass
 
 
@@ -25,6 +28,9 @@ class LEDOutput(Output):
     def set_value(self, value):
         self.value = value
 
+    def set_value_internal(self, value):
+        pass
+
 
 class SoundOutput(Output):
     def __init__(self, name, file, delay):
@@ -35,4 +41,7 @@ class SoundOutput(Output):
         pass
 
     def play(self, value):
+        pass
+
+    def set_value_internal(self, value):
         pass
