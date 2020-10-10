@@ -14,12 +14,15 @@ def read_file():
     try:
         file = open(CONTROL_FILE, "r")
         msg = file.read()
-        print("Had control-command: " + msg)
         file.close()
 
         os.remove(CONTROL_FILE)
+
+        return msg
     except FileNotFoundError:
         pass
+
+    return ""
 
 
 print("Starting main loop")
@@ -27,7 +30,9 @@ while True:
     # print("Running main loop")
 
     # check control
-    read_file()
+    control = read_file()
+    if control != "":
+        print("Had control-command: " + control)
 
     # read inputs
 
