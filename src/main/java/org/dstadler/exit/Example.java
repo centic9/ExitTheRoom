@@ -11,7 +11,7 @@ import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
 public class Example {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         // create gpio controller instance
         final GpioController gpio = GpioFactory.getInstance();
 
@@ -51,12 +51,21 @@ public class Example {
         */
 
         for (Pin pin : RaspiPin.allPins(PinMode.DIGITAL_INPUT)) {
-            GpioPinDigitalInput button = gpio.provisionDigitalInputPin(pin,
-                    "Pin" + pin.getName(),
-                    PinPullResistance.PULL_DOWN);
+            if(pin.supportsPinPullResistance() && pin.getSupportedPinPullResistance().contains(PinPullResistance.PULL_DOWN) &&
+			// labelled "CE0" and "CE1" in the pin-layout chart from "gpio readall"
+			pin.getAddress() != 10 && pin.getAddress() != 11) {
+                GpioPinDigitalInput button = gpio.provisionDigitalInputPin(pin,
+                        "Pin" + pin.getName(),
+                        PinPullResistance.PULL_DOWN);
 
-            // create and register gpio pin listener
-            button.addListener(new GpioUsageExampleListener());
+                // create and register gpio pin listener
+                button.addListener(new GpioUsageExampleListener());
+            }
+        }
+
+        // wait for CTRL-C
+        while (true) {
+            Thread.sleep(100);
         }
     }
 

@@ -4,7 +4,7 @@ apply plugin: 'jacoco'
 
 sourceCompatibility = 1.8
 version = '1.0'
-mainClassName = "org.dstadler.exit.ExitTheRoom"
+mainClassName = "org.dstadler.exit.Example"
 
 jar {
     manifest {
