@@ -53,7 +53,10 @@ public class Example {
         for (Pin pin : RaspiPin.allPins(PinMode.DIGITAL_INPUT)) {
             if(pin.supportsPinPullResistance() && pin.getSupportedPinPullResistance().contains(PinPullResistance.PULL_DOWN) &&
 			// labelled "CE0" and "CE1" in the pin-layout chart from "gpio readall"
-			pin.getAddress() != 10 && pin.getAddress() != 11) {
+			pin.getAddress() != 10 && pin.getAddress() != 11 &&
+			
+			// don't block ports used for the TM1638 device below
+			pin.getAddress() != 00 && pin.getAddress() != 2 && pin.getAddress() != 3) {
                 GpioPinDigitalInput button = gpio.provisionDigitalInputPin(pin,
                         "Pin" + pin.getName(),
                         PinPullResistance.PULL_DOWN);
