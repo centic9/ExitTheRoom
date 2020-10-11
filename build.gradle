@@ -1,0 +1,54 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'jacoco'
+
+sourceCompatibility = 1.8
+version = '1.0'
+mainClassName = "org.dstadler.exit.ExitTheRoom"
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Exit The Room main application', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.pi4j:pi4j-core:1.2'
+
+    compile 'org.dstadler:commons-dost:1.0.0.31'
+    compile 'com.google.guava:guava:29.0-jre'
+    compile 'commons-io:commons-io:2.8.0'
+    compile 'org.apache.commons:commons-lang3:3.11'
+}
+
+wrapper {
+    gradleVersion = '5.6.4'
+}
+
+task adjustWrapperPropertiesFile {
+	doLast() {
+		ant.replaceregexp(match: '^#.*', replace: '', flags: 'g', byline: true) {
+			fileset(dir: project.projectDir, includes: 'gradle/wrapper/gradle-wrapper.properties')
+		}
+		new File(project.projectDir, 'gradle/wrapper/gradle-wrapper.properties').with {
+			it.text = it.readLines().findAll { it }.sort().join('\n')
+		}
+		ant.fixcrlf(file: 'gradle/wrapper/gradle-wrapper.properties', eol: 'lf')
+	}
+}
+wrapper.finalizedBy adjustWrapperPropertiesFile
+
+test {
+    systemProperties = System.properties
+
+	// show standard out and standard error of the test JVM(s) on the console
+	testLogging.showStandardStreams = true
+}
+
+jacoco {
+    toolVersion = '0.8.6'
+}
