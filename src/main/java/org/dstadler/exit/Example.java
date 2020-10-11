@@ -12,6 +12,8 @@ import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
 public class Example {
     public static void main(String[] args) throws Exception {
+        System.out.println("Setting up GPIO input events and TM1638 device");
+
         // create gpio controller instance
         final GpioController gpio = GpioFactory.getInstance();
 
@@ -52,11 +54,13 @@ public class Example {
 
         for (Pin pin : RaspiPin.allPins(PinMode.DIGITAL_INPUT)) {
             if(pin.supportsPinPullResistance() && pin.getSupportedPinPullResistance().contains(PinPullResistance.PULL_DOWN) &&
-			// labelled "CE0" and "CE1" in the pin-layout chart from "gpio readall"
+
+			// the two pins are labelled "CE0" and "CE1" in the pin-layout chart from "gpio readall"
+            // they do not work as input
 			pin.getAddress() != 10 && pin.getAddress() != 11 &&
-			
+
 			// don't block ports used for the TM1638 device below
-			pin.getAddress() != 00 && pin.getAddress() != 2 && pin.getAddress() != 3) {
+			pin.getAddress() != 0 && pin.getAddress() != 2 && pin.getAddress() != 3) {
                 GpioPinDigitalInput button = gpio.provisionDigitalInputPin(pin,
                         "Pin" + pin.getName(),
                         PinPullResistance.PULL_DOWN);
@@ -78,6 +82,7 @@ public class Example {
         tm1638.set_digit(6, '3');
         tm1638.set_digit(7, '2');
 
+        System.out.println("Setup finished, waiting for input-events or CTRL-C");
         // wait for CTRL-C
         while (true) {
             Thread.sleep(100);
