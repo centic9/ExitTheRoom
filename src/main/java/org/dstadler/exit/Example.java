@@ -85,6 +85,10 @@ public class Example {
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
         // wait for CTRL-C
         while (true) {
+            int buttons = tm1638.get_buttons64();
+            if(buttons != 0) {
+                System.out.println("Buttons: " + buttons);
+            }
             Thread.sleep(100);
         }
     }
