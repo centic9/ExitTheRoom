@@ -104,7 +104,7 @@ public class TM1638 {
     //private final Pin clk;
     //private final Pin stb;
 
-    private final GpioPinDigitalOutput dioOut;
+    private GpioPinDigitalOutput dioOut;
     private final GpioPinDigitalOutput clkOut;
     private final GpioPinDigitalOutput stbOut;
 
@@ -154,7 +154,7 @@ public class TM1638 {
     }
 
     private void send_byte(int data) {
-        for(int i = 0;i < 16;i++) {
+        for(int i = 0;i < 8;i++) {
             clkOut.low();
             dioOut.setState((data & 1) == 1);
             data >>= 1;
@@ -229,6 +229,7 @@ public class TM1638 {
         int temp = 0;
 
         // temporarily set DIO to input
+        gpio.unprovisionPin(dioOut);
         GpioPinDigitalInput dioInTemp = gpio.provisionDigitalInputPin(dio, "DIO",
                 PinPullResistance.PULL_UP);
 
@@ -241,7 +242,8 @@ public class TM1638 {
         }
 
         // switch back DIO to output
-        gpio.provisionDigitalOutputPin(dio, "DIO");
+        gpio.unprovisionPin(dioInTemp);
+        dioOut = gpio.provisionDigitalOutputPin(dio, "DIO");
 
         return temp;
     }
