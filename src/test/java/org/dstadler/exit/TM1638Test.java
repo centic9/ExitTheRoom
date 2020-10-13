@@ -55,7 +55,25 @@ class TM1638Test {
         assertEquals(2, TM1638.pow2(1));
         assertEquals(4, TM1638.pow2(2));
         assertEquals(8, TM1638.pow2(3));
+        assertEquals(16, TM1638.pow2(4));
+        assertEquals(32, TM1638.pow2(5));
+        assertEquals(64, TM1638.pow2(6));
+        assertEquals(128, TM1638.pow2(7));
+        assertEquals(256, TM1638.pow2(8));
+        assertEquals(512, TM1638.pow2(9));
+        assertEquals(1024, TM1638.pow2(10));
+        assertEquals(524288, TM1638.pow2(19));
+        assertEquals(1048576, TM1638.pow2(20));
+        assertEquals(536870912, TM1638.pow2(29));
+        assertEquals(1073741824, TM1638.pow2(30));
 
+        // at most 2 to the power of 30 can be computed for integer
+        assertEquals(Integer.MAX_VALUE, TM1638.pow2(31));
+        assertEquals(Integer.MAX_VALUE, TM1638.pow2(32));
+        assertEquals(Integer.MAX_VALUE, TM1638.pow2(33));
+        assertEquals(Integer.MAX_VALUE, TM1638.pow2(40));
+        assertEquals(Integer.MAX_VALUE, TM1638.pow2(41));
+        assertEquals(Integer.MAX_VALUE, TM1638.pow2(24636));
         assertEquals(Integer.MAX_VALUE, TM1638.pow2(Integer.MAX_VALUE));
     }
 }

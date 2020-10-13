@@ -291,6 +291,11 @@ public class TM1638 {
     }
 
     public static int pow2(int power) {
-        return (int)Math.pow(2, power);
+        // avoid integer-overflow, at most 2 to the power of 30 can be computed for integer
+        if(power > 30) {
+            return Integer.MAX_VALUE;
+        }
+
+        return 1 << power;
     }
 }
