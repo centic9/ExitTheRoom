@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.GpioPinPwmOutput;
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinMode;
 import com.pi4j.io.gpio.PinPullResistance;
@@ -98,8 +98,7 @@ public class Example {
             }
         }
 
-        GpioPinPwmOutput buzzer = gpio.provisionPwmOutputPin(RaspiPin.GPIO_26, "Buzzer", 0);
-        buzzer.setPwm(0);
+        GpioPinDigitalOutput buzzer = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_29, "1|0");
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
@@ -107,6 +106,7 @@ public class Example {
         int buttons_prev = -1;
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
         // wait for CTRL-C
+        int i = 0;
         while (true) {
             int buttons = tm1638.get_buttons64();
             if(buttons != 0) {
@@ -117,12 +117,12 @@ public class Example {
             if(buttons != buttons_prev) {
                 tm1638.set_text(Integer.toHexString(buttons));
                 buttons_prev = buttons;
-
-                // map 16 buttons across a range of 0 to 1000
-                if (buttons != -1) {
-                    buzzer.setPwm(BUTTON_MAP.get(buttons) * 1024 / 16);
-                }
             }
+
+            if (i % 10 == 0) {
+                buzzer.setState(i % 20 == 0);
+            }
+            i++;
 
             Thread.sleep(100);
         }
