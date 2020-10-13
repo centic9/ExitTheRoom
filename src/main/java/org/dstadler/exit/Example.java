@@ -17,22 +17,23 @@ import java.util.Map;
 public class Example {
     // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
     private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
-            put(4, 0).
-            put(64, 1).
-            put(1024, 2).
-            put(16384, 3).
-            put(262144, 4).
-            put(4194304, 5).
-            put(67108864, 6).
-            put(1073741824, 7).
-            put(2, 8).
-            put(32, 9).
-            put(512, 10).
-            put(8192, 11).
-            put(131072, 12).
-            put(2097152, 13).
-            put(33554432, 14).
-            put(536870912, 15).
+            put(0, 0).
+            put(4, 1).
+            put(64, 2).
+            put(1024, 3).
+            put(16384, 4).
+            put(262144, 5).
+            put(4194304, 6).
+            put(67108864, 7).
+            put(1073741824, 8).
+            put(2, 9).
+            put(32, 10).
+            put(512, 11).
+            put(8192, 12).
+            put(131072, 13).
+            put(2097152, 14).
+            put(33554432, 15).
+            put(536870912, 16).
             build();
 
     public static void main(String[] args) throws Exception {
@@ -84,7 +85,7 @@ public class Example {
 			pin.getAddress() != 10 && pin.getAddress() != 11 &&
 
             // buzzer
-            pin.getAddress() != 29 &&
+            pin.getAddress() != 26 &&
 
 			// don't block ports used for the TM1638 device below
 			pin.getAddress() != 0 && pin.getAddress() != 2 && pin.getAddress() != 3) {
@@ -97,7 +98,7 @@ public class Example {
             }
         }
 
-        GpioPinPwmOutput buzzer = gpio.provisionPwmOutputPin(RaspiPin.GPIO_29, "1|0", 0);
+        GpioPinPwmOutput buzzer = gpio.provisionPwmOutputPin(RaspiPin.GPIO_26, "Buzzer", 0);
         buzzer.setPwm(0);
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
@@ -118,7 +119,9 @@ public class Example {
                 buttons_prev = buttons;
 
                 // map 16 buttons across a range of 0 to 1000
-                buzzer.setPwm(BUTTON_MAP.get(buttons) * 1024 / 16);
+                if (buttons != -1) {
+                    buzzer.setPwm(BUTTON_MAP.get(buttons) * 1024 / 16);
+                }
             }
 
             Thread.sleep(100);
