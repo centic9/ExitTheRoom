@@ -7,6 +7,7 @@ import net.bytebuddy.pool.TypePool;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -46,5 +47,15 @@ class TM1638Test {
         tm1638.set_text("1.234E237");
 
         assertThrows(IllegalArgumentException.class, () -> tm1638.set_text("..............."));
+    }
+
+    @Test
+    public void testPow2() {
+        assertEquals(1, TM1638.pow2(0));
+        assertEquals(2, TM1638.pow2(1));
+        assertEquals(4, TM1638.pow2(2));
+        assertEquals(8, TM1638.pow2(3));
+
+        assertEquals(Integer.MAX_VALUE, TM1638.pow2(Integer.MAX_VALUE));
     }
 }

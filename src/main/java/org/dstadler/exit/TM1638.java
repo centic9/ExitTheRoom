@@ -267,7 +267,7 @@ public class TM1638 {
         send_byte(0x42);
         for(int i = 0;i < 4;i++) {
             int val = receive();
-            keys += val * (Math.pow(2, (i * 8)));
+            keys += val * (pow2(i * 8));
         }
         stbOut.high();
         return keys;
@@ -281,12 +281,16 @@ public class TM1638 {
     }
 
     private int rotr(int num, int bits) {
-        num &= ((int)Math.pow(2, bits)-1);
+        num &= (pow2(bits)-1);
         int bit = num & 1;
         num >>= 1;
         if (bit == 1) {
             num |= (1 << (bits - 1));
         }
         return num;
+    }
+
+    public static int pow2(int power) {
+        return (int)Math.pow(2, power);
     }
 }
