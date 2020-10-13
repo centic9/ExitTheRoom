@@ -281,7 +281,7 @@ public class TM1638 {
     }
 
     private int rotr(int num, int bits) {
-        num &= ((int)Math.pow(2, bits-1));
+        num &= ((int)Math.pow(2, bits)-1);
         int bit = num & 1;
         num >>= 1;
         if (bit == 1) {
