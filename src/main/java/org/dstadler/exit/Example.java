@@ -1,8 +1,10 @@
 package org.dstadler.exit;
 
+import com.google.common.collect.ImmutableMap;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
+import com.pi4j.io.gpio.GpioPinPwmOutput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinMode;
 import com.pi4j.io.gpio.PinPullResistance;
@@ -10,7 +12,29 @@ import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
+import java.util.Map;
+
 public class Example {
+    // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
+    private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
+            put(4, 0).
+            put(64, 1).
+            put(1024, 2).
+            put(16384, 3).
+            put(262144, 4).
+            put(4194304, 5).
+            put(67108864, 6).
+            put(1073741824, 7).
+            put(2, 8).
+            put(32, 9).
+            put(512, 10).
+            put(8192, 11).
+            put(131072, 12).
+            put(2097152, 13).
+            put(33554432, 14).
+            put(536870912, 15).
+            build();
+
     public static void main(String[] args) throws Exception {
         System.out.println("Setting up GPIO input events and TM1638 device");
 
@@ -59,6 +83,9 @@ public class Example {
             // they do not work as input
 			pin.getAddress() != 10 && pin.getAddress() != 11 &&
 
+            // buzzer
+            pin.getAddress() != 29 &&
+
 			// don't block ports used for the TM1638 device below
 			pin.getAddress() != 0 && pin.getAddress() != 2 && pin.getAddress() != 3) {
                 GpioPinDigitalInput button = gpio.provisionDigitalInputPin(pin,
@@ -69,6 +96,9 @@ public class Example {
                 button.addListener(new GpioUsageExampleListener());
             }
         }
+
+        GpioPinPwmOutput buzzer = gpio.provisionPwmOutputPin(RaspiPin.GPIO_29, "1|0", 0);
+        buzzer.setPwm(0);
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
@@ -86,6 +116,9 @@ public class Example {
             if(buttons != buttons_prev) {
                 tm1638.set_text(Integer.toHexString(buttons));
                 buttons_prev = buttons;
+
+                // map 16 buttons across a range of 0 to 1000
+                buzzer.setPwm(BUTTON_MAP.get(buttons) * 1024 / 16);
             }
 
             Thread.sleep(100);
