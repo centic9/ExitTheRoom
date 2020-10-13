@@ -10,23 +10,22 @@ import java.util.Map;
 public class ButtonSpinning {
     // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
     private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
-//            put(0, 0).
-            put(4, 1).
-            put(64, 2).
-            put(1024, 3).
-            put(16384, 4).
-            put(262144, 5).
-            put(4194304, 6).
-            put(67108864, 7).
-            put(1073741824, 8).
-            put(2, 9).
-            put(32, 10).
-            put(512, 11).
-            put(8192, 12).
-            put(131072, 13).
-            put(2097152, 14).
-            put(33554432, 15).
-            put(536870912, 16).
+            put(4, 0).
+            put(64, 1).
+            put(1024, 2).
+            put(16384, 3).
+            put(262144, 4).
+            put(4194304, 5).
+            put(67108864, 6).
+            put(1073741824, 7).
+            put(2, 8).
+            put(32, 9).
+            put(512, 10).
+            put(8192, 11).
+            put(131072, 12).
+            put(2097152, 13).
+            put(33554432, 14).
+            put(536870912, 15).
             build();
 
     public static void main(String[] args) throws Exception {
@@ -73,7 +72,8 @@ public class ButtonSpinning {
                         segments[segment] = segments[segment] >> 1;
                     }
 
-                    tm1638.send_char(segment, segments[segment]);
+                    System.out.println("Having " + segment + " and " + segments[segment]);
+                    tm1638.send_char(segments[segment], 128 >> segment - 1);
                 }
             }
 
