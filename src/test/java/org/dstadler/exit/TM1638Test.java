@@ -1,7 +1,9 @@
 package org.dstadler.exit;
 
 import com.pi4j.io.gpio.GpioController;
+import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.RaspiPin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,8 +32,6 @@ class TM1638Test {
     public void test() {
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
-
-        tm1638.set_digit(1, '7');
     }
 
     @Test
@@ -74,5 +74,16 @@ class TM1638Test {
         assertEquals(Integer.MAX_VALUE, TM1638.pow2(41));
         assertEquals(Integer.MAX_VALUE, TM1638.pow2(24636));
         assertEquals(Integer.MAX_VALUE, TM1638.pow2(Integer.MAX_VALUE));
+    }
+
+    @Test
+    public void testButtons() {
+        GpioPinDigitalInput dio = mock(GpioPinDigitalInput.class);
+        when(gpio.provisionDigitalInputPin(RaspiPin.GPIO_00, "DIO", PinPullResistance.PULL_UP)).thenReturn(dio);
+
+        TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
+        tm1638.enable();
+
+        assertEquals(0, tm1638.get_buttons64());
     }
 }

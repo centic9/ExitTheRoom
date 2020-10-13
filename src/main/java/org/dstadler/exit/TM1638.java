@@ -163,26 +163,12 @@ public class TM1638 {
         }
     }
 
-    public void set_led(int n, int color) {
-        send_data((n << 1) + 1, color);
-    }
-
     public void send_char(int pos, int data) {
         send_char(pos, data, false);
     }
 
     public void send_char(int pos, int data, boolean dot) {
         send_data(pos << 1, data | (dot ? 128 : 0));
-    }
-
-    public void set_digit(int pos, char digit) {
-        set_digit(pos, digit, false);
-    }
-
-    public void set_digit(int pos, char digit, boolean dot) {
-        for(int i = 0;i < 6;i++) {
-            send_char(i, get_bit_mask(pos, digit, i), dot);
-        }
     }
 
     private int get_bit_mask(int pos, char digit, int bit) {
@@ -248,17 +234,6 @@ public class TM1638 {
         dioOut = gpio.provisionDigitalOutputPin(dio, "DIO");
 
         return temp;
-    }
-
-    public int get_buttons() {
-        int keys = 0;
-        stbOut.low();
-        send_byte(0x42);
-        for(int i = 0;i < 4;i++) {
-            keys |= receive() << i;
-        }
-        stbOut.high();
-        return keys;
     }
 
     public int get_buttons64() {

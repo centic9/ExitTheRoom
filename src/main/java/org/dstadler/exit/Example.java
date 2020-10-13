@@ -73,15 +73,6 @@ public class Example {
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
 
-        tm1638.set_digit(0, '9');
-        tm1638.set_digit(1, '8');
-        tm1638.set_digit(2, '7');
-        tm1638.set_digit(3, '6');
-        tm1638.set_digit(4, '5');
-        tm1638.set_digit(5, '4');
-        tm1638.set_digit(6, '3');
-        tm1638.set_digit(7, '2');
-
         int buttons_prev = -1;
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
         // wait for CTRL-C
