@@ -2,7 +2,9 @@ package org.dstadler.exit;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
+import com.pi4j.io.gpio.GpioPinDigitalMultipurpose;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinMode;
 import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.RaspiPin;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,13 +17,14 @@ import static org.mockito.Mockito.when;
 
 class TM1638Test {
     private final GpioController gpio = mock(GpioController.class);
-    private final GpioPinDigitalOutput dio = mock(GpioPinDigitalOutput.class);
+    private final GpioPinDigitalMultipurpose dio = mock(GpioPinDigitalMultipurpose.class);
     private final GpioPinDigitalOutput clk = mock(GpioPinDigitalOutput.class);
     private final GpioPinDigitalOutput stb = mock(GpioPinDigitalOutput.class);
 
     @BeforeEach
     public void setUp() {
-        when(gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, "DIO")).thenReturn(dio);
+        when(gpio.provisionDigitalMultipurposePin(RaspiPin.GPIO_00, "DIO",
+                PinMode.DIGITAL_OUTPUT, PinPullResistance.PULL_UP)).thenReturn(dio);
 
         when(gpio.provisionDigitalOutputPin(RaspiPin.GPIO_02, "CLK")).thenReturn(clk);
 

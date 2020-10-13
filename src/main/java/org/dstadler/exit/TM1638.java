@@ -1,9 +1,10 @@
 package org.dstadler.exit;
 
 import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioPinDigitalInput;
+import com.pi4j.io.gpio.GpioPinDigitalMultipurpose;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
+import com.pi4j.io.gpio.PinMode;
 import com.pi4j.io.gpio.PinPullResistance;
 import org.apache.commons.lang3.StringUtils;
 
@@ -100,23 +101,14 @@ public class TM1638 {
         FONT.put('~', 0b00000001);  // (126) ~
     }
 
-    private final GpioController gpio;
-    private final Pin dio;
-    //private final Pin clk;
-    //private final Pin stb;
-
-    private GpioPinDigitalOutput dioOut;
+    private final GpioPinDigitalMultipurpose dioInOut;
     private final GpioPinDigitalOutput clkOut;
     private final GpioPinDigitalOutput stbOut;
 
     public TM1638(GpioController gpio, Pin dio, Pin clk, Pin stb) {
-        this.gpio = gpio;
+        dioInOut = gpio.provisionDigitalMultipurposePin(dio, "DIO",
+                PinMode.DIGITAL_OUTPUT, PinPullResistance.PULL_UP);
 
-        this.dio = dio;
-        //this.clk = clk;
-        //this.stb = stb;
-
-        dioOut = gpio.provisionDigitalOutputPin(dio, "DIO");
         clkOut = gpio.provisionDigitalOutputPin(clk, "CLK");
         stbOut = gpio.provisionDigitalOutputPin(stb, "STB");
     }
@@ -157,7 +149,7 @@ public class TM1638 {
     private void send_byte(int data) {
         for(int i = 0;i < 8;i++) {
             clkOut.low();
-            dioOut.setState((data & 1) == 1);
+            dioInOut.setState((data & 1) == 1);
             data >>= 1;
             clkOut.high();
         }
@@ -217,21 +209,18 @@ public class TM1638 {
         int temp = 0;
 
         // temporarily set DIO to input
-        gpio.unprovisionPin(dioOut);
-        GpioPinDigitalInput dioInTemp = gpio.provisionDigitalInputPin(dio, "DIO",
-                PinPullResistance.PULL_UP);
+        dioInOut.setMode(PinMode.DIGITAL_INPUT);
 
         for(int i = 0;i < 8;i++) {
             temp >>= 1;
             clkOut.low();
-            if (dioInTemp.isHigh())
+            if (dioInOut.isHigh())
                 temp |= 0x80;
             clkOut.high();
         }
 
         // switch back DIO to output
-        gpio.unprovisionPin(dioInTemp);
-        dioOut = gpio.provisionDigitalOutputPin(dio, "DIO");
+        dioInOut.setMode(PinMode.DIGITAL_OUTPUT);
 
         return temp;
     }
