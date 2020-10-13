@@ -5,6 +5,7 @@ import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinPullResistance;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -189,41 +190,42 @@ public class TM1638 {
         return ((mask >> bit) & 1) << pos;
     }
 
-    /*
+    public void set_text(String text) {
+        int dots = 0b00000000;
+        int pos = text.indexOf('.');
+        if (pos != -1) {
+            // For my boards, the dot-order is non-linear:
+            // 8 4 2 1 128 64 32 16
+            int realPos = pos + (8 - text.length());
+            if (realPos < 0) {
+                throw new IllegalArgumentException("not possible to render: " + realPos + ": " + pos + ": " + text);
+            } else if (realPos >=4) {
+                dots = dots | (128 >> realPos - 4);
+            } else {
+                dots = dots | (8 >> realPos);
+            }
+            text = text.replace(".", "");
+        }
 
-    def set_text(self, text):
-    dots = 0b00000000
-    pos = text.find('.')
-            if pos != -1:
-            # For my boards, the dot-order is non-linear:
-            # 8 4 2 1 128 64 32 16
-    realPos = pos+(8-len(text))
-            if realPos < 0:
-    print("not possible to render: " + str(realPos) + ": " + str(pos) + ": " + text)
-    elif realPos >= 4:
-    dots = dots | (128 >> realPos-4)
-            else:
-    dots = dots | (8 >> realPos)
-    text = text.replace('.', '')
+        send_char(7, rotate_bits(dots));
+        text = StringUtils.substring(text, 0, Math.min(8, text.length()));
+        text = StringUtils.reverse(text);
+        text = StringUtils.leftPad(text, 8, ' ');
 
-            send_char(7, rotate_bits(dots))
-    text = text[0:8]
-    text = text[::-1]
-    text += " "*(8-len(text))
+        // my TM1638 board has the two 4-char displays exchanged
+        text = text.substring(4, 8) + text.substring(0,4);
 
-            # my TM1638 board has the two 4-char displays exchanged
-            text = text[4:8] + text[0:4]
-
-            for i in range(0, 7):
-    byte = 0b00000000
-            for pos in range(8):
-    c = text[pos]
-            if c == 'c':
-    byte = (byte | get_bit_mask(pos, c, i))
-    elif c != ' ':
-    byte = (byte | get_bit_mask(pos, c, i))
-            send_char(i, rotate_bits(byte))
-*/
+        for(int i = 0;i < 7;i++) {
+            int b = 0b00000000;
+            for(int p = 0;p < 8;p++) {
+                char c = text.charAt(p);
+                if (c != ' ') {
+                    b = (b | get_bit_mask(p, c, i));
+                }
+            }
+            send_char(i, rotate_bits(b));
+        }
+    }
 
     private int receive() {
         int temp = 0;
@@ -271,18 +273,20 @@ public class TM1638 {
         return keys;
     }
 
-    /*
-    def rotate_bits(self, num):
-            for i in range(0, 4):
-    num = rotr(num, 8)
-            return num
+    private int rotate_bits(int num) {
+        for (int i = 0; i < 4; i++) {
+            num = rotr(num, 8);
+        }
+        return num;
+    }
 
-    def rotr(self, num, bits):
-    num &= (2**bits-1)
-    bit = num & 1
-    num >>= 1
-            if bit:
-    num |= (1 << (bits-1))
-            return num
-*/
+    private int rotr(int num, int bits) {
+        num &= ((int)Math.pow(2, bits-1));
+        int bit = num & 1;
+        num >>= 1;
+        if (bit == 1) {
+            num |= (1 << (bits - 1));
+        }
+        return num;
+    }
 }
