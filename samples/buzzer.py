@@ -5,7 +5,7 @@ import time
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-buzzer = 21
+buzzer = 12
 GPIO.setup(buzzer, GPIO.OUT)
 
 try:
