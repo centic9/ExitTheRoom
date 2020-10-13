@@ -82,6 +82,7 @@ public class Example {
         tm1638.set_digit(6, '3');
         tm1638.set_digit(7, '2');
 
+        int buttons_prev = -1;
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
         // wait for CTRL-C
         while (true) {
@@ -89,6 +90,13 @@ public class Example {
             if(buttons != 0) {
                 System.out.println("Buttons: " + buttons);
             }
+
+            // set display whenever buttons change
+            if(buttons != buttons_prev) {
+                tm1638.set_text(Integer.toHexString(buttons));
+                buttons_prev = buttons;
+            }
+
             Thread.sleep(100);
         }
     }
