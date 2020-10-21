@@ -26,6 +26,8 @@ display = TM1638.TM1638(DIO, CLK, STB)
 
 display.enable(1)
 
+display.set_text("press button")
+
 for i in range(1, 30):
     if i == led or i == buzzer or i == DIO or i == CLK or i == STB:
         continue
@@ -35,13 +37,15 @@ for i in range(1, 30):
 
 count = 0
 keysPrev = -1
+ledState = True
+buzzerState = True
 try:
     while True:
-        GPIO.output(led, GPIO.HIGH)
-        GPIO.output(buzzer, GPIO.HIGH)
-        time.sleep(0.5)
-        GPIO.output(led, GPIO.LOW)
-        GPIO.output(buzzer, GPIO.LOW)
+        GPIO.output(led, GPIO.HIGH if ledState else GPIO.LOW)
+        ledState = not ledState
+
+        GPIO.output(buzzer, GPIO.HIGH if buzzerState else GPIO.LOW)
+        buzzerState = not buzzerState
 
         for i in range(1, 30):
             if i == led or i == buzzer or i == DIO or i == CLK or i == STB:
