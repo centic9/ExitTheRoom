@@ -38,6 +38,8 @@ public class ButtonDigitSpinning {
         tm1638.enable();
 
         char[] text = "00000000".toCharArray();
+        //tm1638.set_text("00000000");
+
         int buttons_prev = -1;
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
         // wait for CTRL-C
@@ -59,7 +61,7 @@ public class ButtonDigitSpinning {
                     int segment = button/2;
 
                     // one button increases, the other decreases
-                    if (segment * 2 == button) {
+                    if (segment * 2 != button) {
                         if (text[segment] != '9') {
                             int digit = text[segment] - '0';
                             text[segment] = Character.forDigit(digit+1, 10);
@@ -81,3 +83,4 @@ public class ButtonDigitSpinning {
         }
     }
 }
+
