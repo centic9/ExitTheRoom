@@ -10,9 +10,16 @@ import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
-import com.pi4j.io.gpio.trigger.GpioSyncStateTrigger;
+import com.pi4j.io.gpio.trigger.GpioCallbackTrigger;
+import com.pi4j.io.gpio.trigger.GpioInverseSyncStateTrigger;
+import org.dstadler.audio.player.AudioPlayer;
+import org.dstadler.audio.player.MP3SPIPlayer;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class ButtonDigitSpinning {
     // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
@@ -61,6 +68,38 @@ public class ButtonDigitSpinning {
         voltButton.addListener(new GpioUsageListener());
 
         setupBuzzerOnSwitch(gpio, switchButton);
+
+        onOffButton.addTrigger(new GpioInverseSyncStateTrigger(led));
+
+        AtomicReference<AudioPlayer> player = new AtomicReference<>();
+
+        voltButton.addTrigger(new GpioCallbackTrigger(PinState.HIGH, () -> {
+            System.out.println("Starting to play audio");
+            player.set(new MP3SPIPlayer(new BufferedInputStream(
+                    new FileInputStream("/home/pi/Isis & Mozes - Aerial (Yør Kultura Mix)-IJBbxDZnC-s.mp3"))));
+
+            Thread thread = new Thread(() -> {
+                try {
+                    player.get().play();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+            thread.setDaemon(true);
+            thread.start();
+
+            return null;
+        }));
+
+        voltButton.addTrigger(new GpioCallbackTrigger(PinState.LOW, () -> {
+            if(player.get() != null) {
+                System.out.println("Stopping audio");
+                player.get().close();
+                player.set(null);
+            }
+
+            return null;
+        }));
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
@@ -143,9 +182,6 @@ public class ButtonDigitSpinning {
             // display pin state on console
             System.out.println(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = "
                     + event.getState());
-
-            System.out.println("Chaning led " + led + " to state " + event.getState().isLow());
-            led.setState(event.getState().isLow());
         }
     }
 }
