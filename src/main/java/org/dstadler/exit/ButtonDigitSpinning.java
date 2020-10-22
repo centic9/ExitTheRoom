@@ -43,7 +43,7 @@ public class ButtonDigitSpinning {
         // create gpio controller instance
         final GpioController gpio = GpioFactory.getInstance();
 
-        led  = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "LED");
+        led  = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_29, "LED");
 
         GpioPinDigitalInput onOffButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_23,
                 "Button 1|0",PinPullResistance.PULL_DOWN);
@@ -144,7 +144,8 @@ public class ButtonDigitSpinning {
             System.out.println(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = "
                     + event.getState());
 
-            led.setState(event.getState());
+            System.out.println("Chaning led " + led + " to state " + event.getState().isLow());
+            led.setState(event.getState().isLow());
         }
     }
 }

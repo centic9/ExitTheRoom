@@ -19,7 +19,12 @@ public class LEDBlink {
 
         List<GpioPinDigitalOutput> leds = new ArrayList<>();
         for (Pin pin : RaspiPin.allPins(PinMode.DIGITAL_OUTPUT)) {
-            leds.add(gpio.provisionDigitalOutputPin(pin, "Pin-" + pin.getAddress()));
+            if (
+                        // the two pins are labelled "CE0" and "CE1" in the pin-layout chart from "gpio readall"
+                        // they do not work as input
+			pin.getAddress() != 10 && pin.getAddress() != 11) {
+                leds.add(gpio.provisionDigitalOutputPin(pin, "Pin-" + pin.getAddress()));
+            }
         }
 
         System.out.println("Setup finished, waiting for CTRL-C");
@@ -28,9 +33,9 @@ public class LEDBlink {
         int led = 0;
         while (true) {
             if (i % 10 == 0) {
-                System.out.println("LED: " + led + ": " + (i % 20 == 0));
-                leds.get(led).setState(i % 20 == 0);
-                led = (led + 1) % leds.size();
+                System.out.println("LED-" + led + ": " + (led/2) + "(" + leds.get(led/2) + "): " + (i % 20 == 0));
+                leds.get(led/2).setState(i % 20 == 0);
+                led = (led + 1) % (leds.size()*2);
             }
 
             i++;

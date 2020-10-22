@@ -28,8 +28,11 @@ public class Example {
             // buzzer
             pin.getAddress() != 26 &&
 
-			// don't block ports used for the TM1638 device below
-			pin.getAddress() != 0 && pin.getAddress() != 2 && pin.getAddress() != 3) {
+            // led
+            pin.getAddress() != 29 &&
+
+            // don't block ports used for the TM1638 device below
+            pin.getAddress() != 0 && pin.getAddress() != 2 && pin.getAddress() != 3) {
                 GpioPinDigitalInput button = gpio.provisionDigitalInputPin(pin,
                         "Pin" + pin.getName(),
                         PinPullResistance.PULL_DOWN);
@@ -40,7 +43,7 @@ public class Example {
         }
 
         GpioPinDigitalOutput buzzer = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_26, "Buzzer");
-        GpioPinDigitalOutput led = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "LED");
+        GpioPinDigitalOutput led = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_29, "LED");
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
