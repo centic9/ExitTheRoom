@@ -54,7 +54,7 @@ public class ButtonDigitSpinning {
 
         // create a gpio synchronization trigger on the input pin
         // when the input state changes, also set LED controlling gpio pin to same state
-        onOffButton.addTrigger(new GpioSyncStateTrigger(led));
+        //onOffButton.addTrigger(new GpioSyncStateTrigger(led));
 
         onOffButton.addListener(new GpioUsageListener());
         switchButton.addListener(new GpioUsageListener());
@@ -112,7 +112,7 @@ public class ButtonDigitSpinning {
     }
 
     private static void setupBuzzerOnSwitch(GpioController gpio, GpioPinDigitalInput switchButton) {
-        GpioPinDigitalOutput buzzer  = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "LED");
+        GpioPinDigitalOutput buzzer  = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_26, "Buzzer");
 
         // combine buzzer with switch
         Thread buzzerThread = new Thread(() -> {
