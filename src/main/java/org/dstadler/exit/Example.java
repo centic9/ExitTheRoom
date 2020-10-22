@@ -42,41 +42,6 @@ public class Example {
         // create gpio controller instance
         final GpioController gpio = GpioFactory.getInstance();
 
-        /*
-
-        // provision gpio pins #04 as an output pin and make sure is is set to LOW at startup
-        GpioPinDigitalOutput myLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04,   // PIN NUMBER
-               "My LED",           // PIN FRIENDLY NAME (optional)
-               PinState.LOW);      // PIN STARTUP STATE (optional)
-        // explicitly set a state on the pin object
-        myLed.setState(PinState.HIGH);
-
-
-        // use convenience wrapper method to set state on the pin object
-        myLed.low();
-        myLed.high();
-
-        // use toggle method to apply inverse state on the pin object
-        myLed.toggle();
-
-        // use pulse method to set the pin to the HIGH state for
-        // an explicit length of time in milliseconds
-        myLed.pulse(1000);
-
-
-        // configure the pin shutdown behavior; these settings will be
-        // automatically applied to the pin when the application is terminated
-        // ensure that the LED is turned OFF when the application is shutdown
-        myLed.setShutdownOptions(true, PinState.LOW, PinPullResistance.OFF);
-
-
-        // get explicit state enumeration for the GPIO pin associated with the button
-        PinState myButtonState = myButton.getState();
-
-        // use convenience wrapper method to interrogate the button state
-        boolean buttonPressed = myButton.isHigh();
-        */
-
         for (Pin pin : RaspiPin.allPins(PinMode.DIGITAL_INPUT)) {
             if(pin.supportsPinPullResistance() && pin.getSupportedPinPullResistance().contains(PinPullResistance.PULL_DOWN) &&
 
@@ -99,6 +64,7 @@ public class Example {
         }
 
         GpioPinDigitalOutput buzzer = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_26, "Buzzer");
+        GpioPinDigitalOutput led = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "LED");
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
@@ -121,6 +87,7 @@ public class Example {
 
             if (i % 10 == 0) {
                 buzzer.setState(i % 20 == 0);
+                led.setState(i % 20 == 0);
             }
             i++;
 
