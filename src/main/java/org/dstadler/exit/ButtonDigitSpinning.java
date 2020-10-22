@@ -3,7 +3,11 @@ package org.dstadler.exit;
 import com.google.common.collect.ImmutableMap;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalInput;
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.RaspiPin;
+import com.pi4j.io.gpio.trigger.GpioSyncStateTrigger;
 
 import java.util.Map;
 
@@ -34,6 +38,15 @@ public class ButtonDigitSpinning {
         // create gpio controller instance
         final GpioController gpio = GpioFactory.getInstance();
 
+        GpioPinDigitalOutput led = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "LED");
+
+        GpioPinDigitalInput onOffButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_23,
+                "Button 1|0",PinPullResistance.PULL_DOWN);
+
+        // create a gpio synchronization trigger on the input pin
+        // when the input state changes, also set LED controlling gpio pin to same state
+        onOffButton.addTrigger(new GpioSyncStateTrigger(led));
+
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
 
@@ -43,7 +56,6 @@ public class ButtonDigitSpinning {
         int buttons_prev = -1;
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
         // wait for CTRL-C
-        int i = 0;
         while (true) {
             int buttons = tm1638.get_buttons64();
             if(buttons != 0) {
