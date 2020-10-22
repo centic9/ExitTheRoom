@@ -35,22 +35,32 @@ public class ButtonDigitSpinning {
             put(536870912, 15).
             build();
 
+    private static GpioPinDigitalOutput led;
+
     public static void main(String[] args) throws Exception {
         System.out.println("Setting up GPIO input events and TM1638 device");
 
         // create gpio controller instance
         final GpioController gpio = GpioFactory.getInstance();
 
-        GpioPinDigitalOutput led = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "LED");
+        led  = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "LED");
 
         GpioPinDigitalInput onOffButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_23,
                 "Button 1|0",PinPullResistance.PULL_DOWN);
+        GpioPinDigitalInput switchButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_25,
+                "Switch Button",PinPullResistance.PULL_DOWN);
+        GpioPinDigitalInput voltButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_24,
+                "230V Button",PinPullResistance.PULL_DOWN);
 
         // create a gpio synchronization trigger on the input pin
         // when the input state changes, also set LED controlling gpio pin to same state
         onOffButton.addTrigger(new GpioSyncStateTrigger(led));
 
         onOffButton.addListener(new GpioUsageListener());
+        switchButton.addListener(new GpioUsageListener());
+        voltButton.addListener(new GpioUsageListener());
+
+        setupBuzzerOnSwitch(gpio, switchButton);
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
@@ -60,7 +70,6 @@ public class ButtonDigitSpinning {
 
         int buttons_prev = -1;
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
-        PinState onOffButtonState = PinState.LOW;
 
         // wait for CTRL-C
         while (true) {
@@ -98,13 +107,34 @@ public class ButtonDigitSpinning {
                 }
             }
 
-            if(onOffButtonState != onOffButton.getState()) {
-                System.out.println("Button state changed for 1|0: " + onOffButton.getState());
-                onOffButtonState = onOffButton.getState();
-            }
-
             Thread.sleep(100);
         }
+    }
+
+    private static void setupBuzzerOnSwitch(GpioController gpio, GpioPinDigitalInput switchButton) {
+        GpioPinDigitalOutput buzzer  = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_21, "LED");
+
+        // combine buzzer with switch
+        Thread buzzerThread = new Thread(() -> {
+            try {
+                while (true) {
+                    if (switchButton.getState().isHigh()) {
+                        buzzer.setState(PinState.HIGH);
+
+                        Thread.sleep(500);
+
+                        buzzer.setState(PinState.LOW);
+                    }
+
+                    Thread.sleep(500);
+                }
+            } catch (InterruptedException e) {
+                System.out.println("Sleep interrupted");
+                e.printStackTrace();
+            }
+        });
+        buzzerThread.setDaemon(true);
+        buzzerThread.start();
     }
 
     public static class GpioUsageListener implements GpioPinListenerDigital {
@@ -113,6 +143,8 @@ public class ButtonDigitSpinning {
             // display pin state on console
             System.out.println(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = "
                     + event.getState());
+
+            led.setState(event.getState());
         }
     }
 }
