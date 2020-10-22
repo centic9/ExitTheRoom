@@ -57,3 +57,38 @@ test {
 jacoco {
     toolVersion = '0.8.6'
 }
+
+task example(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    maxHeapSize = '64m'
+    main = 'org.dstadler.exit.Example'
+}
+
+task exitTheRoom(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    maxHeapSize = '64m'
+    main = 'org.dstadler.exit.ExitTheRoom'
+}
+
+task buttonSpinning(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    maxHeapSize = '64m'
+    main = 'org.dstadler.exit.ButtonSpinning'
+}
+
+task buttonDigitSpinning(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    maxHeapSize = '64m'
+    main = 'org.dstadler.exit.ButtonDigitSpinning'
+}
+
+task sysInfo(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    maxHeapSize = '64m'
+    main = 'org.dstadler.exit.SystemInformation'
+}
