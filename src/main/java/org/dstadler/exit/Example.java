@@ -1,6 +1,5 @@
 package org.dstadler.exit;
 
-import com.google.common.collect.ImmutableMap;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
@@ -12,30 +11,7 @@ import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 
-import java.util.Map;
-
 public class Example {
-    // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
-    private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
-            put(0, 0).
-            put(4, 1).
-            put(64, 2).
-            put(1024, 3).
-            put(16384, 4).
-            put(262144, 5).
-            put(4194304, 6).
-            put(67108864, 7).
-            put(1073741824, 8).
-            put(2, 9).
-            put(32, 10).
-            put(512, 11).
-            put(8192, 12).
-            put(131072, 13).
-            put(2097152, 14).
-            put(33554432, 15).
-            put(536870912, 16).
-            build();
-
     public static void main(String[] args) throws Exception {
         System.out.println("Setting up GPIO input events and TM1638 device");
 
