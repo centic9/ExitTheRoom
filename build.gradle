@@ -92,3 +92,10 @@ task sysInfo(type: JavaExec) {
     maxHeapSize = '64m'
     main = 'org.dstadler.exit.SystemInformation'
 }
+
+task ledBlink(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    maxHeapSize = '64m'
+    main = 'org.dstadler.exit.LEDBlink'
+}
