@@ -63,8 +63,11 @@ public class ButtonDigitSpinning {
         int buttons_prev = -1;
         log.info("Setup finished, waiting for input-events or CTRL-C");
 
-        // wait for CTRL-C
         String textStr = null;
+        int dots = 128;
+        boolean dotsUp = true;
+
+        // wait for CTRL-C
         while (true) {
             if(canPlay()) {
                 player.play(MUSIC_RANDOM[RandomUtils.nextInt(0, MUSIC_RANDOM.length)]);
@@ -126,6 +129,19 @@ public class ButtonDigitSpinning {
                 break;
             }
 
+            tm1638.send_char(7, dots);
+            // dots is a bit-field for 7 positions,
+            // so we go up and down periodically by dividing or multiplying by 2
+            if(dots > 1 && (dots == 128 || !dotsUp)) {
+                dotsUp = false;
+                dots = dots / 2;
+            } else {
+                if (dots == 1) {
+                    dotsUp = true;
+                }
+                dots = dots * 2;
+            }
+
             Thread.sleep(100);
         }
     }
@@ -147,6 +163,9 @@ public class ButtonDigitSpinning {
             tm1638.set_text(" LICHT");
             return false;
         }
+
+        // clear dots
+        tm1638.send_char(7, 0);
 
         // ensure we do not continue playing from before
         player.stop();
