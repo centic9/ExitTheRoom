@@ -21,6 +21,10 @@ public class Player {
     private ExecuteWatchdog watchdog;
     private Thread player = null;
 
+    public boolean isPlaying() {
+        return watchdog != null || player != null;
+    }
+
     public void play(File file) throws Exception {
         // stop if there is already something player
         stop();
@@ -31,8 +35,8 @@ public class Player {
 
         log.info("Starting to play file " + file.getAbsolutePath());
         player = new Thread(() -> {
-            CommandLine cmdLine = new CommandLine("/usr/bin/omxplayer");
-            cmdLine.addArgument("--loop");
+            CommandLine cmdLine = new CommandLine("/usr/bin/omxplayer.bin");
+            //cmdLine.addArgument("--loop");
             cmdLine.addArgument("--no-osd");
             cmdLine.addArgument("--no-keys");
             cmdLine.addArgument(file.getAbsolutePath());
@@ -71,6 +75,7 @@ public class Player {
         if(watchdog != null) {
             log.info("Stopping via watchdog");
             if(watchdog.isWatching()) {
+                log.info("Destroy Process");
                 watchdog.destroyProcess();
             }
             watchdog.stop();

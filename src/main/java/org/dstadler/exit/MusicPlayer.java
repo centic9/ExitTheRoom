@@ -1,24 +1,36 @@
 package org.dstadler.exit;
 
+import org.dstadler.commons.logging.jdk.LoggerFactory;
 import org.dstadler.exit.util.Player;
 
 import java.io.File;
+import java.util.logging.Logger;
 
 public class MusicPlayer {
+    private final static Logger log = LoggerFactory.make();
+
     public static void main(String[] args) throws Exception {
-        if(args.length != 2) {
-            System.err.println("Usage: MusicPlayer <file1> <file2>");
+        LoggerFactory.initLogging();
+
+        if(args.length == 0) {
+            System.err.println("Usage: MusicPlayer <file> ...");
             System.exit(1);
         }
 
         Player player = new Player();
 
-        player.play(new File(args[0]));
+        log.info("Playing before: " + player.isPlaying());
 
-        Thread.sleep(5000);
+        for (String file : args) {
+            player.play(new File(file));
 
-        player.play(new File(args[1]));
+            log.info("Playing: " + player.isPlaying());
 
-        Thread.sleep(5000);
+            Thread.sleep(5000);
+        }
+
+        player.stop();
+
+        log.info("Playing after: " + player.isPlaying());
     }
 }
