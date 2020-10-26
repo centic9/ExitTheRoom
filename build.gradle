@@ -106,5 +106,11 @@ task musicPlayer(type: JavaExec) {
 
     maxHeapSize = '64m'
     main = 'org.dstadler.exit.MusicPlayer'
-    args = [ 'audio/background.mp3', 'audio/test2.mp3', 'audio/Female-shout.wav-218417.mp3', 'audio/test1.mp3' ]
+    args = [
+             'audio/Royal Entrance Fanfare - Randy Dunn, heralding trumpet-NkD0MxNY_Bw_trimmed.mp3',
+             'audio/background.mp3',
+             'audio/test2.mp3',
+             'audio/Female-shout.wav-218417.mp3',
+             'audio/test1.mp3'
+    ]
 }
