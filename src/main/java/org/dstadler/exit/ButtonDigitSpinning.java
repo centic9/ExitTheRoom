@@ -1,6 +1,5 @@
 package org.dstadler.exit;
 
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.RandomUtils;
 import org.dstadler.commons.logging.jdk.LoggerFactory;
 import org.dstadler.exit.util.Hardware;
@@ -9,7 +8,9 @@ import org.dstadler.exit.util.TM1638;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SuppressWarnings({"BusyWait"})
@@ -52,97 +53,105 @@ public class ButtonDigitSpinning {
     public static void main(String[] args) throws Exception {
         LoggerFactory.initLogging();
 
-        log.info("Setting up GPIO input events and TM1638 device");
+        try {
+            log.info("Setting up GPIO input events and TM1638 device");
 
-        TM1638 tm1638 = hardware.createTM1638();
-        tm1638.enable();
+            TM1638 tm1638 = hardware.createTM1638();
+            tm1638.enable();
 
-        char[] text = "00000000".toCharArray();
-        //tm1638.set_text("00000000");
+            char[] text = "00000000".toCharArray();
+            //tm1638.set_text("00000000");
 
-        int buttons_prev = -1;
-        log.info("Setup finished, waiting for input-events or CTRL-C");
+            int buttons_prev = -1;
+            log.info("Setup finished, waiting for input-events or CTRL-C");
 
-        String textStr = null;
-        int dots = 128;
-        boolean dotsUp = true;
+            String textStr = null;
+            int dots = 128;
+            boolean dotsUp = true;
 
-        // wait for CTRL-C
-        while (true) {
-            if(canPlay()) {
-                player.play(MUSIC_RANDOM[RandomUtils.nextInt(0, MUSIC_RANDOM.length)]);
-            }
+            // wait for CTRL-C
+            while (true) {
+                if (canPlay()) {
+                    player.play(MUSIC_RANDOM[RandomUtils.nextInt(0, MUSIC_RANDOM.length)]);
+                }
 
-            int buttons = tm1638.get_buttons64();
-            if(buttons != 0) {
-                log.info("Buttons: " + buttons);
-            }
+                int buttons = tm1638.get_buttons64();
+                if (buttons != 0) {
+                    log.info("Buttons: " + buttons);
+                }
 
-            // set display whenever buttons change
-            if(buttons != buttons_prev) {
-                buttons_prev = buttons;
+                // set display whenever buttons change
+                if (buttons != buttons_prev) {
+                    buttons_prev = buttons;
 
-                // this avoids multi-button states and "-1" which we sometimes see
-                Integer button = BUTTON_MAP.get(buttons);
-                if (button != null) {
-                    // 2 buttons to increase/decrease
-                    int segment = button/2;
+                    // this avoids multi-button states and "-1" which we sometimes see
+                    Integer button = BUTTON_MAP.get(buttons);
+                    if (button != null) {
+                        // 2 buttons to increase/decrease
+                        int segment = button / 2;
 
-                    // one button increases, the other decreases
-                    if (segment * 2 != button) {
-                        if (text[segment] != '9') {
-                            int digit = text[segment] - '0';
-                            text[segment] = Character.forDigit(digit+1, 10);
+                        // one button increases, the other decreases
+                        if (segment * 2 != button) {
+                            if (text[segment] != '9') {
+                                int digit = text[segment] - '0';
+                                text[segment] = Character.forDigit(digit + 1, 10);
+                            }
+                        } else {
+                            if (text[segment] != '0') {
+                                int digit = text[segment] - '0';
+                                text[segment] = Character.forDigit(digit - 1, 10);
+                            }
                         }
-                    } else {
-                        if (text[segment] != '0') {
-                            int digit = text[segment] - '0';
-                            text[segment] = Character.forDigit(digit-1, 10);
-                        }
+
+                        textStr = new String(text);
+                        log.info("Having " + segment + " and " + textStr);
+                        tm1638.set_text(textStr);
                     }
+                }
 
+                // check if we have the code and the led
+                if (checkForSuccess(textStr, tm1638)) {
+                    // return true means it was successful and thus we should reset everything
+                    log.info("Resetting...");
+                    text = "00000000".toCharArray();
                     textStr = new String(text);
-                    log.info("Having " + segment + " and " + textStr);
                     tm1638.set_text(textStr);
+                    buttons_prev = -1;
+                    hardware.initLED();
                 }
-            }
 
-            // check if we have the code and the led
-            if(checkForSuccess(textStr, tm1638)) {
-                // return true means it was successful and thus we should reset everything
-                log.info("Resetting...");
-                text = "00000000".toCharArray();
-                textStr = new String(text);
-                tm1638.set_text(textStr);
-                buttons_prev = -1;
-                hardware.initLED();
-            }
+                // shut down on top 4 buttons pressed at the same time
+                if (buttons == (4 + 64 + 1024 + 16384)) {
+                    log.info("Shutting down...");
 
-            // shut down on top 4 buttons pressed at the same time
-            if(buttons == (4  + 64 + 1024 + 16384)) {
-                log.info("Shutting down...");
+                    player.stop();
+                    tm1638.set_text("        ");
+                    hardware.shutdown();
 
-                player.stop();
-                tm1638.set_text("        ");
-                hardware.shutdown();
-
-                break;
-            }
-
-            tm1638.send_char(7, dots);
-            // dots is a bit-field for 7 positions,
-            // so we go up and down periodically by dividing or multiplying by 2
-            if(dots > 1 && (dots == 128 || !dotsUp)) {
-                dotsUp = false;
-                dots = dots / 2;
-            } else {
-                if (dots == 1) {
-                    dotsUp = true;
+                    break;
                 }
-                dots = dots * 2;
+
+                tm1638.send_char(7, dots);
+                // dots is a bit-field for 7 positions,
+                // so we go up and down periodically by dividing or multiplying by 2
+                if (dots > 1 && (dots == 128 || !dotsUp)) {
+                    dotsUp = false;
+                    dots = dots / 2;
+                } else {
+                    if (dots == 1) {
+                        dotsUp = true;
+                    }
+                    dots = dots * 2;
+                }
+
+                Thread.sleep(100);
             }
 
-            Thread.sleep(100);
+            log.info("Shutdown complete");
+        } catch (Exception e) {
+            log.log(Level.WARNING, "Caught unexpected exception", e);
+
+            hardware.shutdown();
         }
     }
 
@@ -203,22 +212,23 @@ public class ButtonDigitSpinning {
     }
 
     // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
-    private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
-            put(4, 0).
-            put(64, 1).
-            put(1024, 2).
-            put(16384, 3).
-            put(262144, 4).
-            put(4194304, 5).
-            put(67108864, 6).
-            put(1073741824, 7).
-            put(2, 8).
-            put(32, 9).
-            put(512, 10).
-            put(8192, 11).
-            put(131072, 12).
-            put(2097152, 13).
-            put(33554432, 14).
-            put(536870912, 15).
-            build();
+    private static final Map<Integer, Integer> BUTTON_MAP = new HashMap<>();
+    static {
+        BUTTON_MAP.put(4, 0);
+        BUTTON_MAP.put(64, 1);
+        BUTTON_MAP.put(1024, 2);
+        BUTTON_MAP.put(16384, 3);
+        BUTTON_MAP.put(262144, 4);
+        BUTTON_MAP.put(4194304, 5);
+        BUTTON_MAP.put(67108864, 6);
+        BUTTON_MAP.put(1073741824, 7);
+        BUTTON_MAP.put(2, 8);
+        BUTTON_MAP.put(32, 9);
+        BUTTON_MAP.put(512, 10);
+        BUTTON_MAP.put(8192, 11);
+        BUTTON_MAP.put(131072, 12);
+        BUTTON_MAP.put(2097152, 13);
+        BUTTON_MAP.put(33554432, 14);
+        BUTTON_MAP.put(536870912, 15);
+    }
 }

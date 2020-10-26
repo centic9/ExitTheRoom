@@ -1,34 +1,35 @@
 package org.dstadler.exit;
 
-import com.google.common.collect.ImmutableMap;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
 import org.dstadler.exit.util.TM1638;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings({"InfiniteLoopStatement", "BusyWait"})
 public class ButtonSpinning {
     // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
-    private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
-            put(4, 0).
-            put(64, 1).
-            put(1024, 2).
-            put(16384, 3).
-            put(262144, 4).
-            put(4194304, 5).
-            put(67108864, 6).
-            put(1073741824, 7).
-            put(2, 8).
-            put(32, 9).
-            put(512, 10).
-            put(8192, 11).
-            put(131072, 12).
-            put(2097152, 13).
-            put(33554432, 14).
-            put(536870912, 15).
-            build();
+    private static final Map<Integer, Integer> BUTTON_MAP = new HashMap<>();
+    static {
+        BUTTON_MAP.put(4, 0);
+        BUTTON_MAP.put(64, 1);
+        BUTTON_MAP.put(1024, 2);
+        BUTTON_MAP.put(16384, 3);
+        BUTTON_MAP.put(262144, 4);
+        BUTTON_MAP.put(4194304, 5);
+        BUTTON_MAP.put(67108864, 6);
+        BUTTON_MAP.put(1073741824, 7);
+        BUTTON_MAP.put(2, 8);
+        BUTTON_MAP.put(32, 9);
+        BUTTON_MAP.put(512, 10);
+        BUTTON_MAP.put(8192, 11);
+        BUTTON_MAP.put(131072, 12);
+        BUTTON_MAP.put(2097152, 13);
+        BUTTON_MAP.put(33554432, 14);
+        BUTTON_MAP.put(536870912, 15);
+    }
 
     public static void main(String[] args) throws Exception {
         System.out.println("Setting up GPIO input events and TM1638 device");
