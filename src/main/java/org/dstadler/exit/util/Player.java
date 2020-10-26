@@ -24,10 +24,14 @@ public class Player {
     private volatile boolean stopping = false;
 
     public boolean isPlaying() {
-        return watchdog != null || player != null;
+        return
+                // check if watchdog exists
+                (watchdog != null &&
+                // check if playing thread exists and did not yet finish
+                (player != null && player.isAlive()));
     }
 
-    public void play(File file) throws Exception {
+    public void play(File file) throws IOException {
         // stop if there is already something player
         stop();
 
@@ -77,7 +81,7 @@ public class Player {
         player.start();
     }
 
-    public synchronized void stop() throws Exception {
+    public synchronized void stop() throws IOException {
         stopping = true;
         if(watchdog != null) {
             log.info("Stopping via watchdog");
@@ -86,12 +90,20 @@ public class Player {
                 watchdog.destroyProcess();
             }
             watchdog.stop();
-            watchdog.checkException();
+            try {
+                watchdog.checkException();
+            } catch (Exception e) {
+                throw new IOException(e);
+            }
             watchdog = null;
         }
         if(player != null) {
             log.info("Stopping playing thread");
-            player.join(5000, 0);
+            try {
+                player.join(5000, 0);
+            } catch (InterruptedException e) {
+                throw new IOException(e);
+            }
             player = null;
         }
         stopping = false;
@@ -109,6 +121,7 @@ public class Player {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private DefaultExecutor getDefaultExecutor(File dir, int expectedExit) {
         DefaultExecutor executor = new DefaultExecutor();
         if(expectedExit != -1) {
