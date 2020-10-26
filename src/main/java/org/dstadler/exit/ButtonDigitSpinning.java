@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-@SuppressWarnings({"BusyWait", "InfiniteLoopStatement"})
+@SuppressWarnings({"BusyWait"})
 public class ButtonDigitSpinning {
     private final static Logger log = LoggerFactory.make();
 
@@ -35,8 +35,8 @@ public class ButtonDigitSpinning {
     private static final File MUSIC_SHOUT = new File("audio/Female-shout.wav-218417.mp3");
 
     private static final File[] MUSIC_DONE = new File[] {
-            MUSIC_LAUGH,
             MUSIC_SHOUT,
+            MUSIC_LAUGH,
             new File("audio/MORIARTY-MISS ME  _ SHERLOCK HOLMES _ 4 SEASON _ THE FINAL PROBLEM-3_Yht_v1BoM.mp3"),
             new File("audio/SHERLOCK _ Moriarty - Did you miss me-2uaYcnFQF-g.mp3"),
     };
@@ -125,7 +125,7 @@ public class ButtonDigitSpinning {
             }
 
             // check if we have the code and the led
-            if(checkForSuccess(textStr, led, tm1638)) {
+            if(checkForSuccess(textStr, led, tm1638, switchButton)) {
                 log.info("Resetting...");
                 text = "00000000".toCharArray();
                 textStr = new String(text);
@@ -137,7 +137,12 @@ public class ButtonDigitSpinning {
             // shut down on top 4 buttons pressed at the same time
             if(buttons == (4  + 64 + 1024 + 16384)) {
                 log.info("Shutting down...");
+
                 player.stop();
+
+                led.setState(PinState.HIGH);
+                tm1638.set_text("        ");
+
                 gpio.shutdown();
                 break;
             }
@@ -146,7 +151,7 @@ public class ButtonDigitSpinning {
         }
     }
 
-    private static boolean checkForSuccess(String text, GpioPinDigitalOutput led, TM1638 tm1638) throws IOException, InterruptedException {
+    private static boolean checkForSuccess(String text, GpioPinDigitalOutput led, TM1638 tm1638, GpioPinDigitalInput switchButton) throws IOException, InterruptedException {
         if(
                 // code does not match
                 //!"00000001".equals(text) ||
@@ -158,7 +163,9 @@ public class ButtonDigitSpinning {
         }
 
         // play some Fanfare first
-        player.play(MUSIC_FANFARE);
+        if (!switchButton.isHigh()) {
+            player.play(MUSIC_FANFARE);
+        }
 
         // simply iterate the scream, laugh and Sherlock talk endlessly
         int music = 0;
@@ -178,7 +185,7 @@ public class ButtonDigitSpinning {
             Thread.sleep(1000);
 
             // play the next item in a loop
-            if(!player.isPlaying()) {
+            if(!player.isPlaying() && !switchButton.isHigh()) {
                 player.play(MUSIC_DONE[music]);
                 music = (music + 1) % MUSIC_DONE.length;
             }
