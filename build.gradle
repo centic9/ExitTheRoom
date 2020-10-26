@@ -101,6 +101,13 @@ task ledBlink(type: JavaExec) {
     main = 'org.dstadler.exit.LEDBlink'
 }
 
+task dots(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    maxHeapSize = '64m'
+    main = 'org.dstadler.exit.Dots'
+}
+
 task musicPlayer(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
