@@ -35,6 +35,7 @@ public class ButtonDigitSpinning {
     private static final File MUSIC_SHOUT = new File("audio/Female-shout.wav-218417.mp3");
 
     private static final File[] MUSIC_DONE = new File[] {
+            new File("audio/Ultimate-Victory-WST010901.mp3"),
             MUSIC_SHOUT,
             MUSIC_LAUGH,
             new File("audio/MORIARTY-MISS ME  _ SHERLOCK HOLMES _ 4 SEASON _ THE FINAL PROBLEM-3_Yht_v1BoM.mp3"),
