@@ -31,7 +31,7 @@ public class Player {
                 (player != null && player.isAlive()));
     }
 
-    public void play(File file) throws IOException {
+    public synchronized void play(File file) throws IOException {
         // stop if there is already something player
         stop();
 
@@ -40,16 +40,16 @@ public class Player {
         }
 
         log.info("Starting to play file " + file.getAbsolutePath());
+        CommandLine cmdLine = new CommandLine("/usr/bin/omxplayer.bin");
+        //cmdLine.addArgument("--loop");
+        cmdLine.addArgument("--no-osd");
+        cmdLine.addArgument("--no-keys");
+        cmdLine.addArgument(file.getAbsolutePath(), false);
+
+        DefaultExecutor executor = getDefaultExecutor(new File("."), 0);
+
         player = new Thread(() -> {
-            CommandLine cmdLine = new CommandLine("/usr/bin/omxplayer.bin");
-            //cmdLine.addArgument("--loop");
-            cmdLine.addArgument("--no-osd");
-            cmdLine.addArgument("--no-keys");
-            cmdLine.addArgument(file.getAbsolutePath(), false);
-
             try {
-                DefaultExecutor executor = getDefaultExecutor(new File("."), 0);
-
                 try (ByteArrayOutputStream outStr = new ByteArrayOutputStream();
                      ByteArrayOutputStream errStr = new ByteArrayOutputStream()) {
                     executor.setStreamHandler(new PumpStreamHandler(outStr, errStr));
