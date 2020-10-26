@@ -8,6 +8,7 @@ import org.dstadler.exit.util.TM1638;
 
 import java.util.Map;
 
+@SuppressWarnings({"InfiniteLoopStatement", "BusyWait"})
 public class ButtonSpinning {
     // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
     private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
@@ -42,7 +43,6 @@ public class ButtonSpinning {
         int buttons_prev = -1;
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
         // wait for CTRL-C
-        int i = 0;
         while (true) {
             int buttons = tm1638.get_buttons64();
             if(buttons != 0) {

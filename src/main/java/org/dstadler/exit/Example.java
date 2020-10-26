@@ -12,6 +12,7 @@ import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import org.dstadler.exit.util.TM1638;
 
+@SuppressWarnings({"BusyWait", "InfiniteLoopStatement"})
 public class Example {
     public static void main(String[] args) throws Exception {
         System.out.println("Setting up GPIO input events and TM1638 device");
