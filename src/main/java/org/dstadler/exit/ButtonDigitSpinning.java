@@ -10,16 +10,9 @@ import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
-import com.pi4j.io.gpio.trigger.GpioCallbackTrigger;
 import com.pi4j.io.gpio.trigger.GpioInverseSyncStateTrigger;
-import org.dstadler.audio.player.AudioPlayer;
-import org.dstadler.audio.player.MP3SPIPlayer;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class ButtonDigitSpinning {
     // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
@@ -42,15 +35,14 @@ public class ButtonDigitSpinning {
             put(536870912, 15).
             build();
 
-    private static GpioPinDigitalOutput led;
-
     public static void main(String[] args) throws Exception {
         System.out.println("Setting up GPIO input events and TM1638 device");
 
         // create gpio controller instance
         final GpioController gpio = GpioFactory.getInstance();
 
-        led  = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_29, "LED");
+        GpioPinDigitalOutput led = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_29, "LED");
+        led.setState(PinState.HIGH);
 
         GpioPinDigitalInput onOffButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_23,
                 "Button 1|0",PinPullResistance.PULL_DOWN);
@@ -71,7 +63,7 @@ public class ButtonDigitSpinning {
 
         onOffButton.addTrigger(new GpioInverseSyncStateTrigger(led));
 
-        AtomicReference<AudioPlayer> player = new AtomicReference<>();
+        /*AtomicReference<AudioPlayer> player = new AtomicReference<>();
 
         voltButton.addTrigger(new GpioCallbackTrigger(PinState.HIGH, () -> {
             System.out.println("Starting to play audio");
@@ -99,7 +91,7 @@ public class ButtonDigitSpinning {
             }
 
             return null;
-        }));
+        }));*/
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
@@ -111,6 +103,7 @@ public class ButtonDigitSpinning {
         System.out.println("Setup finished, waiting for input-events or CTRL-C");
 
         // wait for CTRL-C
+        String textStr = null;
         while (true) {
             int buttons = tm1638.get_buttons64();
             if(buttons != 0) {
@@ -140,13 +133,36 @@ public class ButtonDigitSpinning {
                         }
                     }
 
-                    String textStr = new String(text);
+                    textStr = new String(text);
                     System.out.println("Having " + segment + " and " + textStr);
                     tm1638.set_text(textStr);
                 }
             }
 
+            checkForSuccess(textStr, led, tm1638);
+
             Thread.sleep(100);
+        }
+    }
+
+    private static void checkForSuccess(String text, GpioPinDigitalOutput led, TM1638 tm1638) throws InterruptedException {
+        if("83737762".equals(text) && led.isHigh()) {
+        //if("00000001".equals(text) && led.isHigh()) {
+            // play some Fanfare!
+
+            // blink led and correct code
+            while(true) {
+                // on
+                tm1638.set_text("CODE 617");
+                led.setState(PinState.HIGH);
+
+                Thread.sleep(1000);
+
+                tm1638.set_text("hAhA.hAhA");
+                led.setState(PinState.LOW);
+
+                Thread.sleep(1000);
+            }
         }
     }
 
