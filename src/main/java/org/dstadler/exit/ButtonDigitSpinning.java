@@ -11,39 +11,47 @@ import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.pi4j.io.gpio.trigger.GpioInverseSyncStateTrigger;
+import org.dstadler.commons.logging.jdk.LoggerFactory;
+import org.dstadler.exit.util.Player;
 import org.dstadler.exit.util.TM1638;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+@SuppressWarnings({"BusyWait", "InfiniteLoopStatement"})
 public class ButtonDigitSpinning {
-    // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
-    private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
-            put(4, 0).
-            put(64, 1).
-            put(1024, 2).
-            put(16384, 3).
-            put(262144, 4).
-            put(4194304, 5).
-            put(67108864, 6).
-            put(1073741824, 7).
-            put(2, 8).
-            put(32, 9).
-            put(512, 10).
-            put(8192, 11).
-            put(131072, 12).
-            put(2097152, 13).
-            put(33554432, 14).
-            put(536870912, 15).
-            build();
+    private final static Logger log = LoggerFactory.make();
+
+    private static final String EXPECTED_CODE = "83737762";
+    private static final String SOLUTION_TEXT = "CODE 617";
+    private static final String HAHA_TEXT = "hAhA.hAhA";
+
+    private static final File MUSIC_DEFAULT = new File("audio/Isis & Mozes - Aerial (Yør Kultura Mix)-IJBbxDZnC-s.mp3");
+    private static final File MUSIC_FANFARE = new File("audio/Royal Entrance Fanfare - Randy Dunn, heralding trumpet-NkD0MxNY_Bw_trimmed.mp3");
+    private static final File MUSIC_LAUGH = new File("audio/Evil Laugh.wav-219110.mp3");
+    private static final File MUSIC_SHOUT = new File("audio/Female-shout.wav-218417.mp3");
+
+    private static final File[] MUSIC_DONE = new File[] {
+            MUSIC_LAUGH,
+            MUSIC_SHOUT,
+            new File("audio/MORIARTY-MISS ME  _ SHERLOCK HOLMES _ 4 SEASON _ THE FINAL PROBLEM-3_Yht_v1BoM.mp3"),
+            new File("audio/SHERLOCK _ Moriarty - Did you miss me-2uaYcnFQF-g.mp3"),
+    };
+
+    private static final Player player = new Player();
 
     public static void main(String[] args) throws Exception {
-        System.out.println("Setting up GPIO input events and TM1638 device");
+        LoggerFactory.initLogging();
+
+        log.info("Setting up GPIO input events and TM1638 device");
 
         // create gpio controller instance
         final GpioController gpio = GpioFactory.getInstance();
 
         GpioPinDigitalOutput led = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_29, "LED");
-        led.setState(PinState.HIGH);
 
         GpioPinDigitalInput onOffButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_23,
                 "Button 1|0",PinPullResistance.PULL_DOWN);
@@ -51,6 +59,8 @@ public class ButtonDigitSpinning {
                 "Switch Button",PinPullResistance.PULL_DOWN);
         GpioPinDigitalInput voltButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_24,
                 "230V Button",PinPullResistance.PULL_DOWN);
+
+        led.setState(!onOffButton.getState().isHigh());
 
         // create a gpio synchronization trigger on the input pin
         // when the input state changes, also set LED controlling gpio pin to same state
@@ -64,36 +74,6 @@ public class ButtonDigitSpinning {
 
         onOffButton.addTrigger(new GpioInverseSyncStateTrigger(led));
 
-        /*AtomicReference<AudioPlayer> player = new AtomicReference<>();
-
-        voltButton.addTrigger(new GpioCallbackTrigger(PinState.HIGH, () -> {
-            System.out.println("Starting to play audio");
-            player.set(new MP3SPIPlayer(new BufferedInputStream(
-                    new FileInputStream("/home/pi/Isis & Mozes - Aerial (Yør Kultura Mix)-IJBbxDZnC-s.mp3"))));
-
-            Thread thread = new Thread(() -> {
-                try {
-                    player.get().play();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            thread.setDaemon(true);
-            thread.start();
-
-            return null;
-        }));
-
-        voltButton.addTrigger(new GpioCallbackTrigger(PinState.LOW, () -> {
-            if(player.get() != null) {
-                System.out.println("Stopping audio");
-                player.get().close();
-                player.set(null);
-            }
-
-            return null;
-        }));*/
-
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
 
@@ -101,14 +81,18 @@ public class ButtonDigitSpinning {
         //tm1638.set_text("00000000");
 
         int buttons_prev = -1;
-        System.out.println("Setup finished, waiting for input-events or CTRL-C");
+        log.info("Setup finished, waiting for input-events or CTRL-C");
 
         // wait for CTRL-C
         String textStr = null;
         while (true) {
+            if(!player.isPlaying() && !switchButton.isHigh()) {
+                player.play(MUSIC_DEFAULT);
+            }
+
             int buttons = tm1638.get_buttons64();
             if(buttons != 0) {
-                System.out.println("Buttons: " + buttons);
+                log.info("Buttons: " + buttons);
             }
 
             // set display whenever buttons change
@@ -135,34 +119,75 @@ public class ButtonDigitSpinning {
                     }
 
                     textStr = new String(text);
-                    System.out.println("Having " + segment + " and " + textStr);
+                    log.info("Having " + segment + " and " + textStr);
                     tm1638.set_text(textStr);
                 }
             }
 
-            checkForSuccess(textStr, led, tm1638);
+            // check if we have the code and the led
+            if(checkForSuccess(textStr, led, tm1638)) {
+                log.info("Resetting...");
+                text = "00000000".toCharArray();
+                textStr = new String(text);
+                tm1638.set_text(textStr);
+                buttons_prev = -1;
+                led.setState(!onOffButton.getState().isHigh());
+            }
+
+            // shut down on top 4 buttons pressed at the same time
+            if(buttons == (4  + 64 + 1024 + 16384)) {
+                log.info("Shutting down...");
+                player.stop();
+                gpio.shutdown();
+                break;
+            }
 
             Thread.sleep(100);
         }
     }
 
-    private static void checkForSuccess(String text, GpioPinDigitalOutput led, TM1638 tm1638) throws InterruptedException {
-        if("83737762".equals(text) && led.isHigh()) {
-        //if("00000001".equals(text) && led.isHigh()) {
-            // play some Fanfare!
+    private static boolean checkForSuccess(String text, GpioPinDigitalOutput led, TM1638 tm1638) throws IOException, InterruptedException {
+        if(
+                // code does not match
+                //!"00000001".equals(text) ||
+                !EXPECTED_CODE.equals(text) ||
 
-            // blink led and correct code
-            while(true) {
-                // on
-                tm1638.set_text("CODE 617");
-                led.setState(PinState.HIGH);
+                // led is not enabled
+                led.isHigh()) {
+            return false;
+        }
 
-                Thread.sleep(1000);
+        // play some Fanfare first
+        player.play(MUSIC_FANFARE);
 
-                tm1638.set_text("hAhA.hAhA");
-                led.setState(PinState.LOW);
+        // simply iterate the scream, laugh and Sherlock talk endlessly
+        int music = 0;
 
-                Thread.sleep(1000);
+        // blink led and correct code
+        while(true) {
+            // off
+            tm1638.set_text(HAHA_TEXT);
+            led.setState(PinState.LOW);
+
+            Thread.sleep(1000);
+
+            // on
+            tm1638.set_text(SOLUTION_TEXT);
+            led.setState(PinState.HIGH);
+
+            Thread.sleep(1000);
+
+            // play the next item in a loop
+            if(!player.isPlaying()) {
+                player.play(MUSIC_DONE[music]);
+                music = (music + 1) % MUSIC_DONE.length;
+            }
+
+            // check if the two top-left buttons are pressed for a reset
+            int buttons = tm1638.get_buttons64();
+            if(buttons == (4 + 64)) {
+                player.stop();
+                return true;
             }
         }
     }
@@ -175,6 +200,11 @@ public class ButtonDigitSpinning {
             try {
                 while (true) {
                     if (switchButton.getState().isHigh()) {
+                        // stop playing when we should hear the ticking
+                        if (player.isPlaying()) {
+                            player.stop();
+                        }
+
                         buzzer.setState(PinState.HIGH);
 
                         Thread.sleep(500);
@@ -184,9 +214,8 @@ public class ButtonDigitSpinning {
 
                     Thread.sleep(500);
                 }
-            } catch (InterruptedException e) {
-                System.out.println("Sleep interrupted");
-                e.printStackTrace();
+            } catch (InterruptedException | IOException e) {
+                log.log(Level.WARNING, "Caught exception", e);
             }
         });
         buzzerThread.setDaemon(true);
@@ -197,8 +226,28 @@ public class ButtonDigitSpinning {
         @Override
         public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
             // display pin state on console
-            System.out.println(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = "
+            log.info(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = "
                     + event.getState());
         }
     }
+
+    // See https://www.dstadler.org/dswiki/index.php?title=PiRadio
+    private static final Map<Integer, Integer> BUTTON_MAP = ImmutableMap.<Integer,Integer>builder().
+            put(4, 0).
+            put(64, 1).
+            put(1024, 2).
+            put(16384, 3).
+            put(262144, 4).
+            put(4194304, 5).
+            put(67108864, 6).
+            put(1073741824, 7).
+            put(2, 8).
+            put(32, 9).
+            put(512, 10).
+            put(8192, 11).
+            put(131072, 12).
+            put(2097152, 13).
+            put(33554432, 14).
+            put(536870912, 15).
+            build();
 }
