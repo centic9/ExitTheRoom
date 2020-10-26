@@ -28,12 +28,16 @@ public class ButtonDigitSpinning {
             new File("audio/SHERLOCK _ Moriarty - Did you miss me-2uaYcnFQF-g.mp3"),
     };
 
-    private static final File MUSIC_FANFARE = new File("audio/Royal Entrance Fanfare - Randy Dunn, heralding trumpet-NkD0MxNY_Bw_trimmed.mp3");
-
     private static final File[] MUSIC_DONE = new File[] {
+            // two fanfare
+            new File("audio/Royal Entrance Fanfare - Randy Dunn, heralding trumpet-NkD0MxNY_Bw_trimmed.mp3"),
             new File("audio/Ultimate-Victory-WST010901.mp3"),
+
+            // then some strange noise
             new File("audio/Female-shout.wav-218417.mp3"),
             new File("audio/Evil Laugh.wav-219110.mp3"),
+
+            // finally some Sherlock audio
             new File("audio/MORIARTY-MISS ME  _ SHERLOCK HOLMES _ 4 SEASON _ THE FINAL PROBLEM-3_Yht_v1BoM.mp3"),
             new File("audio/SHERLOCK _ Moriarty - Did you miss me-2uaYcnFQF-g.mp3"),
     };
@@ -131,22 +135,23 @@ public class ButtonDigitSpinning {
     }
 
     private static boolean checkForSuccess(String text, TM1638 tm1638) throws IOException, InterruptedException {
+        // if code does match, return immediately
         if(
-                // code does not match
-                //!"00000001".equals(text) ||
-                !EXPECTED_CODE.equals(text) ||
-
-                // led is not enabled
-                hardware.isLed()) {
+                //!"00000001".equals(text)) {
+                !EXPECTED_CODE.equals(text)) {
             return false;
         }
 
-        // play some Fanfare first
-        if (!hardware.isSwitchButton()) {
-            player.play(MUSIC_FANFARE);
+        // if led is not enabled, give a hint
+        if (!hardware.isLed()) {
+            tm1638.set_text(" LICHT");
+            return false;
         }
 
-        // simply iterate the scream, laugh and Sherlock talk endlessly
+        // ensure we do not continue playing from before
+        player.stop();
+
+        // iterate the list of tracks to play fanfare, scream, laugh and Sherlock talk endlessly
         int music = 0;
 
         // blink led and correct code
