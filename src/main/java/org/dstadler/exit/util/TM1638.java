@@ -1,4 +1,4 @@
-package org.dstadler.exit;
+package org.dstadler.exit.util;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioPinDigitalMultipurpose;

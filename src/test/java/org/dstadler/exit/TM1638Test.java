@@ -6,6 +6,7 @@ import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.PinMode;
 import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.RaspiPin;
+import org.dstadler.exit.util.TM1638;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

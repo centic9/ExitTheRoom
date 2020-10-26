@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
+import org.dstadler.exit.util.TM1638;
 
 import java.util.Map;
 

@@ -10,6 +10,7 @@ import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerDigital;
+import org.dstadler.exit.util.TM1638;
 
 public class Example {
     public static void main(String[] args) throws Exception {

@@ -100,3 +100,11 @@ task ledBlink(type: JavaExec) {
     maxHeapSize = '64m'
     main = 'org.dstadler.exit.LEDBlink'
 }
+
+task musicPlayer(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+
+    maxHeapSize = '64m'
+    main = 'org.dstadler.exit.MusicPlayer'
+    args = [ 'audio/Sherlock is a girl\'s name [s3] l Humor-LJYb9jxQlvA.mp3', 'audio/Evil Laugh.wav-219110.mp3' ]
+}
