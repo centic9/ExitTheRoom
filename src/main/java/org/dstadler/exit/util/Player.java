@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.apache.commons.exec.ExecuteWatchdog.INFINITE_TIMEOUT;
@@ -20,6 +21,7 @@ public class Player {
 
     private ExecuteWatchdog watchdog;
     private Thread player = null;
+    private volatile boolean stopping = false;
 
     public boolean isPlaying() {
         return watchdog != null || player != null;
@@ -39,7 +41,7 @@ public class Player {
             //cmdLine.addArgument("--loop");
             cmdLine.addArgument("--no-osd");
             cmdLine.addArgument("--no-keys");
-            cmdLine.addArgument(file.getAbsolutePath());
+            cmdLine.addArgument(file.getAbsolutePath(), false);
 
             try {
                 DefaultExecutor executor = getDefaultExecutor(new File("."), 0);
@@ -63,7 +65,11 @@ public class Player {
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                if(stopping) {
+                    log.info("Had exception while stopping: " + e);
+                } else {
+                    log.log(Level.WARNING, "Faild to start command", e);
+                }
             }
         });
 
@@ -72,6 +78,7 @@ public class Player {
     }
 
     public synchronized void stop() throws Exception {
+        stopping = true;
         if(watchdog != null) {
             log.info("Stopping via watchdog");
             if(watchdog.isWatching()) {
@@ -87,6 +94,7 @@ public class Player {
             player.join(5000, 0);
             player = null;
         }
+        stopping = false;
     }
 
     private static void execute(CommandLine cmdLine, File dir, DefaultExecutor executor) throws IOException {
