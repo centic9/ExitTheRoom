@@ -1,24 +1,15 @@
 package org.dstadler.exit;
 
 import com.google.common.collect.ImmutableMap;
-import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.PinPullResistance;
-import com.pi4j.io.gpio.PinState;
-import com.pi4j.io.gpio.RaspiPin;
-import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
-import com.pi4j.io.gpio.event.GpioPinListenerDigital;
-import com.pi4j.io.gpio.trigger.GpioInverseSyncStateTrigger;
+import org.apache.commons.lang3.RandomUtils;
 import org.dstadler.commons.logging.jdk.LoggerFactory;
+import org.dstadler.exit.util.Hardware;
 import org.dstadler.exit.util.Player;
 import org.dstadler.exit.util.TM1638;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SuppressWarnings({"BusyWait"})
@@ -29,53 +20,37 @@ public class ButtonDigitSpinning {
     private static final String SOLUTION_TEXT = "CODE 617";
     private static final String HAHA_TEXT = "hAhA.hAhA";
 
-    private static final File MUSIC_DEFAULT = new File("audio/Isis & Mozes - Aerial (Yør Kultura Mix)-IJBbxDZnC-s.mp3");
+    private static final File[] MUSIC_RANDOM = new File[] {
+            new File("audio/Isis & Mozes - Aerial (Yor Kultura Mix)-IJBbxDZnC-s.mp3"),
+            new File("audio/MEUTE - Hey Hey (Dennis Ferrer Rework)-NYtjttnp1Rs.mp3"),
+            new File("audio/Ben Böhmer live above Cappadocia in Turkey for Cercle-RvRhUHTV_8k.mp3"),
+            new File("audio/MORIARTY-MISS ME  _ SHERLOCK HOLMES _ 4 SEASON _ THE FINAL PROBLEM-3_Yht_v1BoM.mp3"),
+            new File("audio/SHERLOCK _ Moriarty - Did you miss me-2uaYcnFQF-g.mp3"),
+    };
+
     private static final File MUSIC_FANFARE = new File("audio/Royal Entrance Fanfare - Randy Dunn, heralding trumpet-NkD0MxNY_Bw_trimmed.mp3");
-    private static final File MUSIC_LAUGH = new File("audio/Evil Laugh.wav-219110.mp3");
-    private static final File MUSIC_SHOUT = new File("audio/Female-shout.wav-218417.mp3");
 
     private static final File[] MUSIC_DONE = new File[] {
             new File("audio/Ultimate-Victory-WST010901.mp3"),
-            MUSIC_SHOUT,
-            MUSIC_LAUGH,
+            new File("audio/Female-shout.wav-218417.mp3"),
+            new File("audio/Evil Laugh.wav-219110.mp3"),
             new File("audio/MORIARTY-MISS ME  _ SHERLOCK HOLMES _ 4 SEASON _ THE FINAL PROBLEM-3_Yht_v1BoM.mp3"),
             new File("audio/SHERLOCK _ Moriarty - Did you miss me-2uaYcnFQF-g.mp3"),
     };
 
     private static final Player player = new Player();
+    private static final Hardware hardware = new Hardware(() -> {
+        if (player.isPlaying()) {
+            player.stop();
+        }
+    });
 
     public static void main(String[] args) throws Exception {
         LoggerFactory.initLogging();
 
         log.info("Setting up GPIO input events and TM1638 device");
 
-        // create gpio controller instance
-        final GpioController gpio = GpioFactory.getInstance();
-
-        GpioPinDigitalOutput led = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_29, "LED");
-
-        GpioPinDigitalInput onOffButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_23,
-                "Button 1|0",PinPullResistance.PULL_DOWN);
-        GpioPinDigitalInput switchButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_25,
-                "Switch Button",PinPullResistance.PULL_DOWN);
-        GpioPinDigitalInput voltButton = gpio.provisionDigitalInputPin(RaspiPin.GPIO_24,
-                "230V Button",PinPullResistance.PULL_DOWN);
-
-        led.setState(!onOffButton.getState().isHigh());
-
-        // create a gpio synchronization trigger on the input pin
-        // when the input state changes, also set LED controlling gpio pin to same state
-        //onOffButton.addTrigger(new GpioSyncStateTrigger(led));
-
-        onOffButton.addListener(new GpioUsageListener());
-        switchButton.addListener(new GpioUsageListener());
-        voltButton.addListener(new GpioUsageListener());
-
-        setupBuzzerOnSwitch(gpio, switchButton);
-
-        onOffButton.addTrigger(new GpioInverseSyncStateTrigger(led));
-
-        TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
+        TM1638 tm1638 = hardware.createTM1638();
         tm1638.enable();
 
         char[] text = "00000000".toCharArray();
@@ -87,8 +62,8 @@ public class ButtonDigitSpinning {
         // wait for CTRL-C
         String textStr = null;
         while (true) {
-            if(!player.isPlaying() && !switchButton.isHigh()) {
-                player.play(MUSIC_DEFAULT);
+            if(canPlay()) {
+                player.play(MUSIC_RANDOM[RandomUtils.nextInt(0, MUSIC_RANDOM.length)]);
             }
 
             int buttons = tm1638.get_buttons64();
@@ -126,13 +101,14 @@ public class ButtonDigitSpinning {
             }
 
             // check if we have the code and the led
-            if(checkForSuccess(textStr, led, tm1638, switchButton)) {
+            if(checkForSuccess(textStr, tm1638)) {
+                // return true means it was successful and thus we should reset everything
                 log.info("Resetting...");
                 text = "00000000".toCharArray();
                 textStr = new String(text);
                 tm1638.set_text(textStr);
                 buttons_prev = -1;
-                led.setState(!onOffButton.getState().isHigh());
+                hardware.initLED();
             }
 
             // shut down on top 4 buttons pressed at the same time
@@ -140,11 +116,9 @@ public class ButtonDigitSpinning {
                 log.info("Shutting down...");
 
                 player.stop();
-
-                led.setState(PinState.HIGH);
                 tm1638.set_text("        ");
+                hardware.shutdown();
 
-                gpio.shutdown();
                 break;
             }
 
@@ -152,19 +126,23 @@ public class ButtonDigitSpinning {
         }
     }
 
-    private static boolean checkForSuccess(String text, GpioPinDigitalOutput led, TM1638 tm1638, GpioPinDigitalInput switchButton) throws IOException, InterruptedException {
+    private static boolean canPlay() {
+        return !player.isPlaying() && !hardware.isSwitchButton();
+    }
+
+    private static boolean checkForSuccess(String text, TM1638 tm1638) throws IOException, InterruptedException {
         if(
                 // code does not match
                 //!"00000001".equals(text) ||
                 !EXPECTED_CODE.equals(text) ||
 
                 // led is not enabled
-                led.isHigh()) {
+                hardware.isLed()) {
             return false;
         }
 
         // play some Fanfare first
-        if (!switchButton.isHigh()) {
+        if (!hardware.isSwitchButton()) {
             player.play(MUSIC_FANFARE);
         }
 
@@ -175,18 +153,18 @@ public class ButtonDigitSpinning {
         while(true) {
             // off
             tm1638.set_text(HAHA_TEXT);
-            led.setState(PinState.LOW);
+            hardware.ledOff();
 
             Thread.sleep(1000);
 
             // on
             tm1638.set_text(SOLUTION_TEXT);
-            led.setState(PinState.HIGH);
+            hardware.ledOn();
 
             Thread.sleep(1000);
 
             // play the next item in a loop
-            if(!player.isPlaying() && !switchButton.isHigh()) {
+            if(canPlay()) {
                 player.play(MUSIC_DONE[music]);
                 music = (music + 1) % MUSIC_DONE.length;
             }
@@ -197,45 +175,6 @@ public class ButtonDigitSpinning {
                 player.stop();
                 return true;
             }
-        }
-    }
-
-    private static void setupBuzzerOnSwitch(GpioController gpio, GpioPinDigitalInput switchButton) {
-        GpioPinDigitalOutput buzzer  = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_26, "Buzzer");
-
-        // combine buzzer with switch
-        Thread buzzerThread = new Thread(() -> {
-            try {
-                while (true) {
-                    if (switchButton.getState().isHigh()) {
-                        // stop playing when we should hear the ticking
-                        if (player.isPlaying()) {
-                            player.stop();
-                        }
-
-                        buzzer.setState(PinState.HIGH);
-
-                        Thread.sleep(500);
-
-                        buzzer.setState(PinState.LOW);
-                    }
-
-                    Thread.sleep(500);
-                }
-            } catch (InterruptedException | IOException e) {
-                log.log(Level.WARNING, "Caught exception", e);
-            }
-        });
-        buzzerThread.setDaemon(true);
-        buzzerThread.start();
-    }
-
-    public static class GpioUsageListener implements GpioPinListenerDigital {
-        @Override
-        public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-            // display pin state on console
-            log.info(" --> GPIO PIN STATE CHANGE: " + event.getPin() + " = "
-                    + event.getState());
         }
     }
 
