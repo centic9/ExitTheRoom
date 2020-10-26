@@ -73,20 +73,22 @@ public class Hardware {
         return new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean isSwitchButton() {
         return switchButton.isHigh();
     }
 
     public boolean isLed() {
-        return led.isHigh();
+        // LED is "on" when "low"!
+        return !led.isHigh();
     }
 
     public void ledOn() {
+        // LED is "on" when "low"!
         led.setState(PinState.LOW);
     }
 
     public void ledOff() {
+        // LED is "on" when "low"!
         led.setState(PinState.HIGH);
     }
 
