@@ -17,7 +17,7 @@ public class ButtonDigitSpinning {
     private final static Logger log = LoggerFactory.make();
 
     private static final String EXPECTED_CODE = "83737762";
-    private static final String SOLUTION_TEXT = "CODE 617";
+    private static final String SOLUTION_TEXT = "CODE 196";
     private static final String HAHA_TEXT = "hAhA.hAhA";
 
     private static final File[] MUSIC_RANDOM = new File[] {
