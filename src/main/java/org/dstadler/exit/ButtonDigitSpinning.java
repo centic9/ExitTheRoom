@@ -1,6 +1,9 @@
 package org.dstadler.exit;
 
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomUtils;
+import org.dstadler.commons.exec.ExecutionHelper;
 import org.dstadler.commons.logging.jdk.LoggerFactory;
 import org.dstadler.exit.util.Hardware;
 import org.dstadler.exit.util.Player;
@@ -8,6 +11,8 @@ import org.dstadler.exit.util.TM1638;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -127,6 +132,24 @@ public class ButtonDigitSpinning {
                     player.stop();
                     tm1638.set_text("        ");
                     hardware.shutdown();
+
+                    break;
+                }
+
+                // shut down the machine on bottom 4 buttons pressed at the same time
+                if (buttons == (131072 + 2097152 + 33554432 + 536870912)) {
+                    log.info("Shutting down machine...");
+
+                    player.stop();
+                    tm1638.set_text("BYE BYE");
+                    hardware.shutdown();
+
+                    CommandLine cmdLine = new CommandLine("sudo");
+                    cmdLine.addArgument("shutdown");
+                    cmdLine.addArgument("now");
+
+                    InputStream result = ExecutionHelper.getCommandResult(cmdLine, new File("."), 0, 60_000);
+                    log.info("Result from shutdown: " + IOUtils.toString(result, StandardCharsets.UTF_8));
 
                     break;
                 }
