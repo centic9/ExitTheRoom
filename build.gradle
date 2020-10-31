@@ -58,13 +58,6 @@ task example(type: JavaExec) {
     main = 'org.dstadler.exit.Example'
 }
 
-task exitTheRoom(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-
-    maxHeapSize = '64m'
-    main = 'org.dstadler.exit.ExitTheRoom'
-}
-
 task buttonSpinning(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
