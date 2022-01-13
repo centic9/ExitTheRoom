@@ -26,7 +26,7 @@ dependencies {
     implementation 'com.pi4j:pi4j-core:1.2'
     //implementation 'com.pi4j:pi4j-device:1.2'
 
-    implementation 'org.dstadler:commons-dost:1.0.0.36'
+    implementation 'org.dstadler:commons-dost:1.1.0.0'
     implementation 'commons-io:commons-io:2.11.0'
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 	implementation 'org.apache.commons:commons-exec:1.3'
