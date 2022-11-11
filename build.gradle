@@ -1,7 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-sourceCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_11
 version = '1.0'
 mainClassName = "org.dstadler.exit.ButtonDigitSpinning"
 
