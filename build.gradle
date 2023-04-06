@@ -57,49 +57,49 @@ task example(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     maxHeapSize = '64m'
-    main = 'org.dstadler.exit.Example'
+    mainClass = 'org.dstadler.exit.Example'
 }
 
 task buttonSpinning(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     maxHeapSize = '64m'
-    main = 'org.dstadler.exit.ButtonSpinning'
+    mainClass = 'org.dstadler.exit.ButtonSpinning'
 }
 
 task buttonDigitSpinning(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     maxHeapSize = '64m'
-    main = 'org.dstadler.exit.ButtonDigitSpinning'
+    mainClass = 'org.dstadler.exit.ButtonDigitSpinning'
 }
 
 task sysInfo(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     maxHeapSize = '64m'
-    main = 'org.dstadler.exit.SystemInformation'
+    mainClass = 'org.dstadler.exit.SystemInformation'
 }
 
 task ledBlink(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     maxHeapSize = '64m'
-    main = 'org.dstadler.exit.LEDBlink'
+    mainClass = 'org.dstadler.exit.LEDBlink'
 }
 
 task dots(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     maxHeapSize = '64m'
-    main = 'org.dstadler.exit.Dots'
+    mainClass = 'org.dstadler.exit.Dots'
 }
 
 task musicPlayer(type: JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
 
     maxHeapSize = '64m'
-    main = 'org.dstadler.exit.MusicPlayer'
+    mainClass = 'org.dstadler.exit.MusicPlayer'
     args = [
              'audio/Royal Entrance Fanfare - Randy Dunn, heralding trumpet-NkD0MxNY_Bw_trimmed.mp3',
              'audio/background.mp3',
