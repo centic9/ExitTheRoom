@@ -22,7 +22,7 @@ class TM1638Test {
     private final GpioPinDigitalOutput stb = mock(GpioPinDigitalOutput.class);
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         when(gpio.provisionDigitalMultipurposePin(RaspiPin.GPIO_00, "DIO",
                 PinMode.DIGITAL_OUTPUT, PinPullResistance.PULL_UP)).thenReturn(dio);
 
@@ -32,13 +32,13 @@ class TM1638Test {
     }
 
     @Test
-    public void test() {
+    void test() {
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
     }
 
     @Test
-    public void testText() {
+    void testText() {
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
 
@@ -52,7 +52,7 @@ class TM1638Test {
     }
 
     @Test
-    public void testPow2() {
+    void testPow2() {
         assertEquals(1, TM1638.pow2(0));
         assertEquals(2, TM1638.pow2(1));
         assertEquals(4, TM1638.pow2(2));
@@ -80,7 +80,7 @@ class TM1638Test {
     }
 
     @Test
-    public void testButtons() {
+    void testButtons() {
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
         tm1638.enable();
 
@@ -88,7 +88,7 @@ class TM1638Test {
     }
 
     @Test
-    public void testButtonsDIOHigh() {
+    void testButtonsDIOHigh() {
         when(dio.isHigh()).thenReturn(true);
 
         TM1638 tm1638 = new TM1638(gpio, RaspiPin.GPIO_00, RaspiPin.GPIO_02, RaspiPin.GPIO_03);
