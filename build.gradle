@@ -1,7 +1,11 @@
 apply plugin: 'java'
 apply plugin: 'application'
 
-sourceCompatibility = JavaVersion.VERSION_17
+java {
+	toolchain {
+		sourceCompatibility = JavaVersion.VERSION_17
+	}
+}
 version = '1.0'
 application {
     mainClass = 'org.dstadler.exit.ButtonDigitSpinning'
@@ -40,62 +44,66 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.13.1'
 }
 
+test {
+	useJUnitPlatform()
+}
+
 wrapper {
     gradleVersion = '8.14.2'
 }
 
-task example(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+tasks.register('example', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
 
-    maxHeapSize = '64m'
-    mainClass = 'org.dstadler.exit.Example'
+	maxHeapSize = '64m'
+	mainClass = 'org.dstadler.exit.Example'
 }
 
-task buttonSpinning(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+tasks.register('buttonSpinning', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
 
-    maxHeapSize = '64m'
-    mainClass = 'org.dstadler.exit.ButtonSpinning'
+	maxHeapSize = '64m'
+	mainClass = 'org.dstadler.exit.ButtonSpinning'
 }
 
-task buttonDigitSpinning(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+tasks.register('buttonDigitSpinning', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
 
-    maxHeapSize = '64m'
-    mainClass = 'org.dstadler.exit.ButtonDigitSpinning'
+	maxHeapSize = '64m'
+	mainClass = 'org.dstadler.exit.ButtonDigitSpinning'
 }
 
-task sysInfo(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+tasks.register('sysInfo', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
 
-    maxHeapSize = '64m'
-    mainClass = 'org.dstadler.exit.SystemInformation'
+	maxHeapSize = '64m'
+	mainClass = 'org.dstadler.exit.SystemInformation'
 }
 
-task ledBlink(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+tasks.register('ledBlink', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
 
-    maxHeapSize = '64m'
-    mainClass = 'org.dstadler.exit.LEDBlink'
+	maxHeapSize = '64m'
+	mainClass = 'org.dstadler.exit.LEDBlink'
 }
 
-task dots(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+tasks.register('dots', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
 
-    maxHeapSize = '64m'
-    mainClass = 'org.dstadler.exit.Dots'
+	maxHeapSize = '64m'
+	mainClass = 'org.dstadler.exit.Dots'
 }
 
-task musicPlayer(type: JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
+tasks.register('musicPlayer', JavaExec) {
+	classpath = sourceSets.main.runtimeClasspath
 
-    maxHeapSize = '64m'
-    mainClass = 'org.dstadler.exit.MusicPlayer'
-    args = [
-             'audio/Royal Entrance Fanfare - Randy Dunn, heralding trumpet-NkD0MxNY_Bw_trimmed.mp3',
-             'audio/background.mp3',
-             'audio/test2.mp3',
-             'audio/Female-shout.wav-218417.mp3',
-             'audio/test1.mp3'
-    ]
+	maxHeapSize = '64m'
+	mainClass = 'org.dstadler.exit.MusicPlayer'
+	args = [
+			'audio/Royal Entrance Fanfare - Randy Dunn, heralding trumpet-NkD0MxNY_Bw_trimmed.mp3',
+			'audio/background.mp3',
+			'audio/test2.mp3',
+			'audio/Female-shout.wav-218417.mp3',
+			'audio/test1.mp3'
+	]
 }
