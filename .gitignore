@@ -1,0 +1,20 @@
+
+.gradle/
+.idea/
+
+# /
+/ExitTheRoom.iml
+/out
+/build
+/__pycache__
+/ExitTheRoom*.log
+/ExitTheRoom*.log.lck
+
+# /audio/
+/audio/*.mp3
+/audio/*.wav
+/audio/*.mp4
+/audio/*.mkv
+
+# /samples/
+/samples/__pycache__
