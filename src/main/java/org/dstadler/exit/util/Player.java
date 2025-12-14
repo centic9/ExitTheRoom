@@ -10,12 +10,16 @@ import org.dstadler.commons.logging.jdk.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.apache.commons.exec.ExecuteWatchdog.INFINITE_TIMEOUT;
+import static org.apache.commons.exec.ExecuteWatchdog.INFINITE_TIMEOUT_DURATION;
 
+/**
+ * Simple audio-player which executes the external application 'oxmplayer.bin'
+ */
 public class Player {
     private final static Logger log = LoggerFactory.make();
 
@@ -57,14 +61,14 @@ public class Player {
                         execute(cmdLine, new File("."), executor);
 
                         if (errStr.toByteArray().length > 0) {
-                            log.info("Had stderr: " + errStr.toString("UTF-8"));
+                            log.info("Had stderr: " + errStr.toString(StandardCharsets.UTF_8));
                         }
 
                         if (outStr.toByteArray().length > 0) {
-                            log.info("Had stdout: " + outStr.toString("UTF-8"));
+                            log.info("Had stdout: " + outStr.toString(StandardCharsets.UTF_8));
                         }
                     } catch (IOException e) {
-                        log.warning("Had output before error: " + new String(outStr.toByteArray()));
+                        log.warning("Had output before error: " + outStr);
                         throw new IOException(e);
                     }
                 }
@@ -72,7 +76,7 @@ public class Player {
                 if(stopping) {
                     log.info("Had exception while stopping: " + e);
                 } else {
-                    log.log(Level.WARNING, "Faild to start command", e);
+                    log.log(Level.WARNING, "Failed to start command", e);
                 }
             }
         });
@@ -123,16 +127,19 @@ public class Player {
 
     @SuppressWarnings("SameParameterValue")
     private DefaultExecutor getDefaultExecutor(File dir, int expectedExit) {
-        DefaultExecutor executor = new DefaultExecutor();
+        DefaultExecutor executor = DefaultExecutor.builder().
+                setWorkingDirectory(dir).
+                get();
         if(expectedExit != -1) {
             executor.setExitValue(expectedExit);
         } else {
             executor.setExitValues(null);
         }
 
-        watchdog = new ExecuteWatchdog(INFINITE_TIMEOUT);
+        watchdog = ExecuteWatchdog.builder().
+                setTimeout(INFINITE_TIMEOUT_DURATION).
+                get();
         executor.setWatchdog(watchdog);
-        executor.setWorkingDirectory(dir);
 
         return executor;
     }

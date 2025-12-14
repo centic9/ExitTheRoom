@@ -77,7 +77,7 @@ public class ButtonDigitSpinning {
             // wait for CTRL-C
             while (true) {
                 if (canPlay()) {
-                    player.play(MUSIC_RANDOM[RandomUtils.nextInt(0, MUSIC_RANDOM.length)]);
+                    player.play(MUSIC_RANDOM[RandomUtils.insecure().randomInt(0, MUSIC_RANDOM.length)]);
                 }
 
                 int buttons = tm1638.get_buttons64();

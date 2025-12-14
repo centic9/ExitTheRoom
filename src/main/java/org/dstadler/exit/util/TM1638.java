@@ -11,6 +11,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Simple port of code for handling a TM1638 device via Pi4j.
+ *
+ * Based on one of the available C-based open-source libraries.
+ */
 public class TM1638 {
     private static final Map<Character, Integer> FONT = new HashMap<>();
     static {
@@ -244,6 +249,7 @@ public class TM1638 {
         return num;
     }
 
+    @SuppressWarnings("SameParameterValue")
     private int rotr(int num, int bits) {
         num &= (pow2(bits)-1);
         int bit = num & 1;
